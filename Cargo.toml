@@ -1,0 +1,24 @@
+[package]
+authors = ["Jonathan Pallant <jonathan.pallant@ferrous-systems.com>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+name = "s32z2-rust-demo"
+description = "Rust Demo for the NXP32Z270-400EVB"
+readme = "README.md"
+repository = "https://github.com/ferrous-systems/s32z2-rust-demo.git"
+rust-version = "1.86"
+version = "0.1.0"
+
+[dependencies]
+arbitrary-int = "2"
+arm-dcc = "0.1"
+arm-gic = "0.6"
+bitbybit = "1.4"
+cortex-ar = { version = "0.2", features=["critical-section-single-core"] }
+cortex-r-rt = "0.2"
+derive-mmio = "0.6"
+panic-dcc = "0.1"
+semihosting = { version = "0.1.20", features = ["stdio"] }
+
+[build-dependencies]
+arm-targets = "0.1"

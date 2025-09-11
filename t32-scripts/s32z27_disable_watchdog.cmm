@@ -1,0 +1,19 @@
+; --------------------------------------------------------------------------------
+; @Title: Disable all relevant watchdogs inside the S32Z27x
+; @Description:
+;   All watchgogs will be disabled, even of cores, that will not be debugged.
+;   Prerequisites:
+;    * Debugger is already connected to the SOC
+; @Keywords: ARM
+; @Author: STK
+; @Board: Generic S32Z27X
+; @Chip: S32Z270
+; @Copyright: (C) 1989-2022 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32z27_disable_watchdog.cmm 24126 2025-02-05 14:09:25Z skrausse $
+
+; disable the Watchdog
+
+; The watchdogs are disabled by default, so nothing to do.
+
+ENDDO
