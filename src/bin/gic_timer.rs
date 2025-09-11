@@ -13,16 +13,6 @@ use arm_gic::{
 };
 use cortex_ar::generic_timer::{El1VirtualTimer, GenericTimer};
 
-/// The entry-point to the Rust application.
-///
-/// It is called by the start-up code in `lib.rs`
-#[no_mangle]
-pub fn s32z2_main() {
-    if let Err(e) = main() {
-        panic!("main returned {:?}", e);
-    }
-}
-
 /// Offset from PERIPHBASE for GIC Distributor
 const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
 
@@ -37,15 +27,11 @@ const VIRTUAL_TIMER_PPI: IntId = IntId::ppi(11);
 /// Our software interrupt ID
 const SGI_ID: IntId = IntId::sgi(3);
 
-fn dump_cpsr() {
-    let cpsr = cortex_ar::register::Cpsr::read();
-    println!("CPSR: {:?}", cpsr);
-}
-
-/// The main function of our Rust application.
+/// The entry-point to the Rust application.
 ///
-/// Called by [`kmain`].
-fn main() -> Result<(), core::fmt::Error> {
+/// It is called by the start-up code in `lib.rs`
+#[no_mangle]
+pub fn s32z2_main() {
     // Get the GIC address by reading CBAR
     let periphbase = cortex_ar::register::ImpCbar::read().periphbase();
     println!("Found PERIPHBASE {:010p}", periphbase);
@@ -100,12 +86,17 @@ fn main() -> Result<(), core::fmt::Error> {
 
     vgt.countdown_set(vgt.frequency_hz());
 
-    for count in 0..u64::MAX {
+    let mut count: u32 = 0;
+    loop {
         cortex_ar::asm::wfi();
         println!("Main loop wake up {}", count);
+        count = count.wrapping_add(1);
     }
+}
 
-    Ok(())
+fn dump_cpsr() {
+    let cpsr = cortex_ar::register::Cpsr::read();
+    println!("CPSR: {:?}", cpsr);
 }
 
 /// Called when the Arm core gets an IRQ
