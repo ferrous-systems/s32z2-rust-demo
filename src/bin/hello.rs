@@ -13,15 +13,6 @@ use arm_dcc::dprintln as println;
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
 pub fn s32z2_main() {
-    if let Err(e) = main() {
-        panic!("main returned {:?}", e);
-    }
-}
-
-/// The main function of our Rust application.
-///
-/// Called by [`kmain`].
-fn main() -> Result<(), core::fmt::Error> {
     let x = 1.0f64;
     let y = x * 2.0;
     println!("Hello, this is semihosting! x = {:0.3}, y = {:0.3}", x, y);

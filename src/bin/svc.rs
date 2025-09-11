@@ -14,15 +14,6 @@ use arm_dcc::dprintln as println;
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
 pub fn s32z2_main() {
-    if let Err(e) = main() {
-        panic!("main returned {:?}", e);
-    }
-}
-
-/// The main function of our Rust application.
-///
-/// Called by [`kmain`].
-fn main() -> Result<(), core::fmt::Error> {
     let x = 1;
     let y = x + 1;
     let z = (y as f64) * 1.5;
