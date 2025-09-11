@@ -1,0 +1,161 @@
+; --------------------------------------------------------------------------------
+; @Title: Helper script to initialize the onchip SRAM on the S32Z27x
+; @Description: -
+; @Keywords: ARM
+; @Author: STK
+; @Board: Generic S32Z27X
+; @Chip: S32Z270
+; @Copyright: (C) 1989-2022 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32z27_init_rtu0_sram.cmm 24153 2025-02-07 14:01:54Z pegold $
+
+IF !SYStem.Up()
+(
+  PRINT %ERROR "Debugger need to be in Up or PREPARE state!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+; Init RTU0 SRAMCTL_C0
+Data.Set EAXI:0x760C0008 %Long 0x799FFFFF
+Data.Set EAXI:0x760C0004 %Long 0x79900000
+Data.Set EAXI:0x760C0000 %Long 0x101
+
+; Init RTU0 SRAMCTL_C1
+Data.Set EAXI:0x760D0008 %Long 0x79AFFFFF
+Data.Set EAXI:0x760D0004 %Long 0x79A00000
+Data.Set EAXI:0x760D0000 %Long 0x101
+
+; Init RTU0 SRAMCTL_C2
+Data.Set EAXI:0x760E0008 %Long 0x79BFFFFF
+Data.Set EAXI:0x760E0004 %Long 0x79B00000
+Data.Set EAXI:0x760E0000 %Long 0x101
+
+; Init RTU0 SRAMCTL_C3
+Data.Set EAXI:0x760F0008 %Long 0x79CFFFFF
+Data.Set EAXI:0x760F0004 %Long 0x79C00000
+Data.Set EAXI:0x760F0000 %Long 0x101
+
+; Init RTU0 SRAMCTL_C4
+Data.Set EAXI:0x76240008 %Long 0x79DFFFFF
+Data.Set EAXI:0x76240004 %Long 0x79D00000
+Data.Set EAXI:0x76240000 %Long 0x101
+
+; Init RTU0 SRAMCTL_C5
+Data.Set EAXI:0x76250008 %Long 0x79EFFFFF
+Data.Set EAXI:0x76250004 %Long 0x79E00000
+Data.Set EAXI:0x76250000 %Long 0x101
+
+; Init RTU0 SRAMCTL_C6
+Data.Set EAXI:0x76260008 %Long 0x79FFFFFF
+Data.Set EAXI:0x76260004 %Long 0x79F00000
+Data.Set EAXI:0x76260000 %Long 0x101
+
+; Init RTU0 SRAMCTL_D0
+Data.Set EAXI:0x761D0008 %Long 0x317BFFFF
+Data.Set EAXI:0x761D0004 %Long 0x31780000
+Data.Set EAXI:0x761D0000 %Long 0x101
+
+; Init RTU0 SRAMCTL_D1
+Data.Set EAXI:0x761E0008 %Long 0x317FFFFF
+Data.Set EAXI:0x761E0004 %Long 0x317C0000
+Data.Set EAXI:0x761E0000 %Long 0x101
+
+; Init RTU0 SRAMCTL_D2
+Data.Set EAXI:0x761F0008 %Long 0x3187FFFF
+Data.Set EAXI:0x761F0004 %Long 0x31800000
+Data.Set EAXI:0x761F0000 %Long 0x101
+
+; Wait for completion
+WAIT (Data.Long(EAXI:0x760C000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x760C000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C0!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x760D000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x760D000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C1!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x760E000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x760E000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C2!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x760F000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x760F000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C3!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x7624000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x7624000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C4!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x7625000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x7625000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C5!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x7626000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x7626000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_C6!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x761D000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x761D000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_D0!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x761E000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x761E000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_D1!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+WAIT (Data.Long(EAXI:0x761F000C)&0x00000001)==0x00000001 5s
+IF (Data.Long(EAXI:0x761F000C)&0x00000001)!=0x00000001
+(
+  PRINT %ERROR "Error initializing RTU0 SRAMCTL_D2!"
+  PLIST
+  STOP
+  ENDDO
+)
+
+ENDDO

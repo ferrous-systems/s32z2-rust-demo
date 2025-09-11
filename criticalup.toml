@@ -1,0 +1,14 @@
+manifest-version = 1
+
+[products.ferrocene]
+release = "stable-25.05.0"
+packages = [
+    "cargo-${rustc-host}",
+    "clippy-${rustc-host}",
+    "llvm-tools-${rustc-host}",
+    "rust-src",
+    "rust-std-${rustc-host}",
+    "rust-std-armv8r-none-eabihf",
+    "rustc-${rustc-host}",
+    "rustfmt-${rustc-host}",
+]

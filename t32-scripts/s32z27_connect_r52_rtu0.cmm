@@ -1,0 +1,109 @@
+; --------------------------------------------------------------------------------
+; @Title: Helper script to wake-up and connect to the R52 RTU0 cores.
+; @Description:
+;    If the target flash is empty, then non of the cores will be waked up
+;    after reset by the boot rom. In that case this script will initialize the
+;    target SRAM, patch an endless loop into the memory and enable clocks
+;    to the core.
+; @Keywords: ARM
+; @Author: STK
+; @Board: Generic S32Z27X
+; @Chip: S32Z270
+; @Copyright: (C) 1989-2022 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32z27_connect_r52_rtu0.cmm 24126 2025-02-05 14:09:25Z skrausse $
+
+ENTRY &RTU0_RESET_VECTOR
+
+; Check, if master debugger
+IF SYStem.CONFIG.Slave()
+(
+  PRINT %ERROR "The script has to be run inside the master debugger!"
+  ENDDO
+)
+
+; Check, if correct CPU is already selected.
+IF !CPUIS("S32Z27*-R52-RTU0")
+(
+  RESet
+  SYStem.CPU S32Z270-R52-RTU0
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+  SYStem.MemAccess AXI
+  SYStem.JtagClock 10MHz
+  Trace.DISable
+  ETM.OFF
+  STM.OFF
+)
+
+IF "&RTU0_RESET_VECTOR"==""
+  &RTU0_RESET_VECTOR=0x32100000
+
+; Connect in prepare mode and wake-up the RTU0 cores
+SYStem.Mode PREPARE
+
+; RTU0 subsystem out of reset logic
+Data.Set EAXI:0x41900300 %Long 0x000000005     ; MC_ME.PRTN1_PCONF[OSSE, PCE] = 1)
+Data.Set EAXI:0x41900304 %Long 0x000000001     ; MC_ME.PRTN1_PUPD[PCUD] = 1
+
+Data.Set EAXI:0x41900000 %Long 0x00005AF0      ; MC_ME.CTL_KEY = 0x5AF0
+Data.Set EAXI:0x41900000 %Long 0x0000A50F      ; MC_ME.CTL_KEY = 0xA50F
+
+WAIT 100ms
+Data.Set EAXI:0x4186005c %Long 0x00000000      ; GPR3 - RTU0 Fence and Drain Control (RTU0FDC)(Deactivate RTU fencing logic)
+
+Data.Set EAXI:0x41890004 %Long 0x80000000      ; Unlock RDC Register Write
+Data.Set EAXI:0x41890004 %Long 0x80000007      ; Enable the Interconnect interface of Reset
+
+Data.Set EAXI:0x41850048 %Long 0x0000001E      ; MC_RGM.PRST1_0: Assert reset to RTU0 cores
+
+Data.Set EAXI:0x41900300 %Long 0x00000001      ; MC_ME.PRTN1_PCONF: Clear OSSE bit
+Data.Set EAXI:0x41900304 %Long 0x00000004      ; MC_ME.PRTN1_PUPD
+Data.Set EAXI:0x41900000 %Long 0x00005AF0      ; MC_ME.CTL_KEY = 0x5AF0
+Data.Set EAXI:0x41900000 %Long 0x0000A50F      ; MC_ME.CTL_KEY = 0xA50F
+
+WAIT 100ms
+
+DO ~~~~/s32z27_init_rtu0_sram.cmm
+
+; Writing loop to self instruction to memory
+Data.Set       EAXI:&RTU0_RESET_VECTOR %Long 0xFFFEF7FF
+
+; Enable clocks to the RTU0 core 0
+Data.Set EAXI:0x4190034C %Long &RTU0_RESET_VECTOR   ; MC_ME.PRTN1_CORE0_ADDR
+Data.Set EAXI:0x41900340 %Long 0x00000001           ; MC_ME.PRTN1_CORE0[PCONF] = 1)
+Data.Set EAXI:0x41900344 %Long 0x00000001           ; MC_ME.PRTN1_CORE0[PUPD]  = 1)
+Data.Set EAXI:0x41900000 %Long 0x00005AF0           ; MC_ME.CTL_KEY = 0x5AF0
+Data.Set EAXI:0x41900000 %Long 0x0000A50F           ; MC_ME.CTL_KEY = 0xA50F
+
+; Enable clocks to the RTU0 core 1
+Data.Set EAXI:0x4190036C %Long &RTU0_RESET_VECTOR   ; MC_ME.PRTN1_CORE1_ADDR
+Data.Set EAXI:0x41900360 %Long 0x00000001           ; MC_ME.PRTN1_CORE1[PCONF] = 1)
+Data.Set EAXI:0x41900364 %Long 0x00000001           ; MC_ME.PRTN1_CORE1[PUPD]  = 1)
+Data.Set EAXI:0x41900000 %Long 0x00005AF0           ; MC_ME.CTL_KEY = 0x5AF0
+Data.Set EAXI:0x41900000 %Long 0x0000A50F           ; MC_ME.CTL_KEY = 0xA50F
+
+; Enable clocks to the RTU0 core 2
+Data.Set EAXI:0x4190038C %Long &RTU0_RESET_VECTOR   ; MC_ME.PRTN1_CORE2_ADDR
+Data.Set EAXI:0x41900380 %Long 0x00000001           ; MC_ME.PRTN1_CORE2[PCONF] = 1)
+Data.Set EAXI:0x41900384 %Long 0x00000001           ; MC_ME.PRTN1_CORE2[PUPD]  = 1)
+Data.Set EAXI:0x41900000 %Long 0x00005AF0           ; MC_ME.CTL_KEY = 0x5AF0
+Data.Set EAXI:0x41900000 %Long 0x0000A50F           ; MC_ME.CTL_KEY = 0xA50F
+
+; Enable clocks to the RTU0 core 3
+Data.Set EAXI:0x419003AC %Long &RTU0_RESET_VECTOR   ; MC_ME.PRTN1_CORE3_ADDR
+Data.Set EAXI:0x419003A0 %Long 0x00000001           ; MC_ME.PRTN1_CORE3[PCONF] = 1)
+Data.Set EAXI:0x419003A4 %Long 0x00000001           ; MC_ME.PRTN1_CORE3[PUPD]  = 1)
+Data.Set EAXI:0x41900000 %Long 0x00005AF0           ; MC_ME.CTL_KEY = 0x5AF0
+Data.Set EAXI:0x41900000 %Long 0x0000A50F           ; MC_ME.CTL_KEY = 0xA50F
+
+Data.Set EAXI:0x41850048 %Long 0x00000000           ; MC_RGM.PRST1_0: Release reset to RTU0 cores
+
+// Due to lock-step mode only two cores are accessible
+SYStem.Down
+CORE.ASSIGN 1. 2.
+SYStem.Attach
+
+IF STATE.RUN()
+  Break
+
+ENDDO

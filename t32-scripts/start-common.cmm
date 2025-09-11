@@ -1,0 +1,47 @@
+PARAMETERS &scriptPath
+
+; Resolve sources
+sYmbol.SourcePATH.RESet
+sYmbol.SourcePATH.SetBaseDir "~~~~/.."
+
+TERM.METHOD dcc
+term.size #1 80 50 1000
+TERM.Mode string
+
+; WINDOWS
+TOOLBAR   ON
+STATUSBAR ON
+FramePOS 7.4286,4.3333,,,Maximized
+WinPAGE.RESet
+
+WinPAGE.Create P000
+WinCLEAR
+
+WinPOS 220.57 -0.083333 48. 35. 0. 0. W003
+Register.view /SpotLight
+
+WinPOS 0.57143 2.3333 112. 59. 0. 0. W004
+term.gate
+WinPAN 0. 21.
+
+WinPOS 114.43 0.0 91. 26. 5. 0. W001
+Frame.view /Locals
+
+WinPOS 114.57 33.583 116. 26. 16. 1. W000
+WinTABS 10. 10. 25.
+List.auto
+
+WinPOS 168.71 27.083 99. 10. 26. 1. W002
+WinTABS 13. 0. 0. 0. 0. 0. 0. 0. 34.
+Break.List
+
+WinPAGE.select P000
+
+; Start with main
+Go kmain
+
+; Add reload command
+GLOBALON CoMmanD RELOAD DO &scriptPath
+PRINT %COLOR.RED "Use reload command to reload demo!"
+
+ENDDO

@@ -1,0 +1,75 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SMP demo script for S32Z270-R52-RTU0 on S32Z27X-DC (RAM, SMP)
+; @Description:
+;   Loads the demo application into RAM and sets up a demo debug scenario
+;   on all cores.
+;   Use this script for getting started.
+;   As not all cores are accessible after Reset (SYStem.Up) we handle the start
+;   of the secondary cores in the script and switch to SMP later.
+;   Prerequisites:
+;    * Connect Debug Cable to J129
+; @Keywords: ARM, Cortex-R52, SMP
+; @Author: STK
+; @Board: S32Z27X-DC
+; @Chip: S32Z270
+; @Copyright: (C) 1989-2021 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32z27x-dc_rtu0_sieve_smp_sram.cmm 24120 2025-02-04 15:44:37Z skrausse $
+; Reviewed by FIZ, 2024-10-29
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU S32Z270-R52-RTU0
+; Due to lock-step mode only two cores are accessible
+CORE.ASSIGN 1. 2.
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+SYStem.MemAccess AXI
+SYStem.JtagClock 10MHz
+Trace.DISable
+ETM.OFF
+STM.OFF
+
+; Use an error handler for SYStem.Up
+; In case the board flash is empty, then no core is booting and we have
+; to wake up the core manually
+ON ERROR GOSUB
+(
+  ON ERROR DEFault
+  DO ~~~~/s32z27_connect_r52_rtu0.cmm
+  RETURN
+)
+SYStem.Up
+
+ON ERROR inherit
+
+; Disable all watchdogs
+DO ~~~~/s32z27_disable_watchdog.cmm
+
+; Init SRAM
+DO ~~~~/s32z27_init_rtu0_sram.cmm
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/../target/armv8r-none-eabihf/debug/gic_timer"
+
+; Break on the UDF handler
+Break.Set 0x32100004
+; Break on the SVC handler
+Break.Set 0x32100008
+; Break on the Prefetch handler
+Break.Set 0x3210000C
+; Break on the ABT handler
+Break.Set 0x32100010
+
+; --------------------------------------------------------------------------------
+; start program execution
+WAIT !STATE.RUN()
+
+&scriptPath=OS.PPF()
+DO "~~~~/start-common.cmm" "&scriptPath"
+
+ENDDO
