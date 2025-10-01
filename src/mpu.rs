@@ -7,7 +7,8 @@
 use cortex_ar::{
     self as _,
     pmsav8::{
-        AccessPerms, Cacheable, Config, El1Mpu, MemAttr, Region, RwAllocPolicy, Shareability,
+        Cacheable, El1AccessPerms, El1Config, El1Mpu, El1Region, El1Shareability, MemAttr,
+        RwAllocPolicy,
     },
 };
 
@@ -24,44 +25,44 @@ const MPU_MAIR_INDEX_DATA: u8 = 1;
 const MPU_MAIR_INDEX_DEVICE: u8 = 2;
 
 /// Basic MPU config for the S32Z2
-static MPU_CONFIG: Config = Config {
+static MPU_CONFIG: El1Config = El1Config {
     background_config: false,
     regions: &[
         // Code in R52_0_0_CODE_RAM
-        Region {
+        El1Region {
             range: 0x3210_0000 as *mut u8..=0x321B_FFFF as *mut u8,
-            shareability: Shareability::InnerShareable,
+            shareability: El1Shareability::InnerShareable,
             // ordinarily you'd want this read-only, except the debugger
             // replaces instructions on-the-fly with soft breakpoints, so
             // it has to be read-write if you want single-step debugging to work.
-            access: AccessPerms::ReadWrite,
+            access: El1AccessPerms::ReadWrite,
             no_exec: false,
             mair: MPU_MAIR_INDEX_CODE,
             enable: true,
         },
         // Data in R52_0_0_CODE_RAM
-        Region {
+        El1Region {
             range: 0x3178_0000 as *mut u8..=0x317B_FFFF as *mut u8,
-            shareability: Shareability::InnerShareable,
-            access: AccessPerms::ReadWrite,
+            shareability: El1Shareability::InnerShareable,
+            access: El1AccessPerms::ReadWrite,
             no_exec: true,
             mair: MPU_MAIR_INDEX_DATA,
             enable: true,
         },
         // RTU0 P0 Peripherals
-        Region {
+        El1Region {
             range: 0x4000_0000 as *mut u8..=0x407F_FFFF as *mut u8,
-            shareability: Shareability::NonShareable,
-            access: AccessPerms::ReadWriteNoEL0,
+            shareability: El1Shareability::NonShareable,
+            access: El1AccessPerms::ReadWriteNoEL0,
             no_exec: true,
             mair: MPU_MAIR_INDEX_DEVICE,
             enable: true,
         },
         // RTU0 GICv3
-        Region {
+        El1Region {
             range: 0x4780_0000 as *mut u8..=0x479F_FFFF as *mut u8,
-            shareability: Shareability::NonShareable,
-            access: AccessPerms::ReadWriteNoEL0,
+            shareability: El1Shareability::NonShareable,
+            access: El1AccessPerms::ReadWriteNoEL0,
             no_exec: true,
             mair: MPU_MAIR_INDEX_DEVICE,
             enable: true,
