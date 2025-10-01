@@ -3,15 +3,17 @@
 #![no_std]
 #![no_main]
 
-// pull in our start-up code
-use s32z2_rust_demo as _;
+use core::ptr::NonNull;
 
 use arm_dcc::dprintln as println;
 use arm_gic::{
-    gicv3::{GicV3, Group, InterruptGroup, SgiTarget, SgiTargetGroup},
-    IntId,
+    gicv3::{GicCpuInterface, GicV3, Group, InterruptGroup, SgiTarget, SgiTargetGroup},
+    IntId, UniqueMmioPointer,
 };
 use cortex_ar::generic_timer::{El1VirtualTimer, GenericTimer};
+
+// pull in our start-up code
+use s32z2_rust_demo as _;
 
 /// Offset from PERIPHBASE for GIC Distributor
 const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
@@ -43,21 +45,29 @@ pub fn s32z2_main() {
         "Creating GIC driver @ {:010p} / {:010p}",
         gicd_base, gicr_base
     );
-    let mut gic: GicV3 = unsafe { GicV3::new(gicd_base.cast(), gicr_base.cast(), 1, false) };
+    let gicd = unsafe { UniqueMmioPointer::new(NonNull::new(gicd_base.cast()).unwrap()) };
+    let gicr_base = NonNull::new(gicr_base.cast()).unwrap();
+    let mut gic: GicV3 = unsafe { GicV3::new(gicd, gicr_base, 1, false) };
     println!("Calling git.setup(0)");
     gic.setup(0);
-    GicV3::set_priority_mask(0x80);
+    GicCpuInterface::set_priority_mask(0x80);
 
     // Configure a Software Generated Interrupt for Core 0
     println!("Configure SGI...");
-    gic.set_interrupt_priority(SGI_ID, Some(0), 0x31);
-    gic.set_group(SGI_ID, Some(0), Group::Group1NS);
-    gic.enable_interrupt(SGI_ID, Some(0), true);
+    gic.set_interrupt_priority(SGI_ID, Some(0), 0x31)
+        .expect("SGI set_interrupt_priority");
+    gic.set_group(SGI_ID, Some(0), Group::Group1NS)
+        .expect("SGI set_group");
+    gic.enable_interrupt(SGI_ID, Some(0), true)
+        .expect("SGI enable_interrupt");
 
     println!("Configure Timer Interrupt...");
-    gic.set_interrupt_priority(VIRTUAL_TIMER_PPI, Some(0), 0x31);
-    gic.set_group(VIRTUAL_TIMER_PPI, Some(0), Group::Group1NS);
-    gic.enable_interrupt(VIRTUAL_TIMER_PPI, Some(0), true);
+    gic.set_interrupt_priority(VIRTUAL_TIMER_PPI, Some(0), 0x31)
+        .expect("Timer set_interrupt_priority");
+    gic.set_group(VIRTUAL_TIMER_PPI, Some(0), Group::Group1NS)
+        .expect("Timer set_group");
+    gic.enable_interrupt(VIRTUAL_TIMER_PPI, Some(0), true)
+        .expect("Timer enable_interrupt");
 
     let mut vgt = unsafe { El1VirtualTimer::new() };
     vgt.enable(true);
@@ -73,7 +83,7 @@ pub fn s32z2_main() {
 
     // Send it
     println!("Send SGI");
-    GicV3::send_sgi(
+    GicCpuInterface::send_sgi(
         SGI_ID,
         SgiTarget::List {
             affinity3: 0,
@@ -82,7 +92,8 @@ pub fn s32z2_main() {
             target_list: 0b1,
         },
         SgiTargetGroup::CurrentGroup1,
-    );
+    )
+    .expect("send sgi");
 
     vgt.countdown_set(vgt.frequency_hz());
 
@@ -103,14 +114,15 @@ fn dump_cpsr() {
 #[cortex_r_rt::irq]
 fn irq_handler() {
     println!("> IRQ");
-    while let Some(int_id) = GicV3::get_and_acknowledge_interrupt(InterruptGroup::Group1) {
+    while let Some(int_id) = GicCpuInterface::get_and_acknowledge_interrupt(InterruptGroup::Group1)
+    {
         println!("- IRQ handle {:?}", int_id);
         if int_id == VIRTUAL_TIMER_PPI {
             handle_timer_irq();
         } else if int_id == SGI_ID {
             handle_sgi_irq();
         }
-        GicV3::end_interrupt(int_id, InterruptGroup::Group1);
+        GicCpuInterface::end_interrupt(int_id, InterruptGroup::Group1);
     }
     println!("< IRQ");
 }
