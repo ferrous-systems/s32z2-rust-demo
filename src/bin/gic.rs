@@ -3,14 +3,16 @@
 #![no_std]
 #![no_main]
 
-// pull in our start-up code
-use s32z2_rust_demo as _;
+use core::ptr::NonNull;
 
 use arm_dcc::dprintln as println;
 use arm_gic::{
-    gicv3::{GicV3, Group, InterruptGroup, SgiTarget, SgiTargetGroup},
-    IntId,
+    gicv3::{GicCpuInterface, GicV3, Group, InterruptGroup, SgiTarget, SgiTargetGroup},
+    IntId, UniqueMmioPointer,
 };
+
+// pull in our start-up code
+use s32z2_rust_demo as _;
 
 /// Offset from PERIPHBASE for GIC Distributor
 const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
@@ -34,19 +36,24 @@ pub fn s32z2_main() {
         "Creating GIC driver @ {:010p} / {:010p}",
         gicd_base, gicr_base
     );
-    let mut gic: GicV3 = unsafe { GicV3::new(gicd_base.cast(), gicr_base.cast(), 1, false) };
+    let gicd = unsafe { UniqueMmioPointer::new(NonNull::new(gicd_base.cast()).unwrap()) };
+    let gicr_base = NonNull::new(gicr_base.cast()).unwrap();
+    let mut gic: GicV3 = unsafe { GicV3::new(gicd, gicr_base, 1, false) };
     println!("Calling git.setup(0)");
     gic.setup(0);
-    GicV3::set_priority_mask(0x80);
+    GicCpuInterface::set_priority_mask(0x80);
 
     // Configure a Software Generated Interrupt for Core 0
     println!("Configure SGI...");
     let sgi_intid = IntId::sgi(3);
-    gic.set_interrupt_priority(sgi_intid, Some(0), 0x31);
-    gic.set_group(sgi_intid, Some(0), Group::Group1NS);
+    gic.set_interrupt_priority(sgi_intid, Some(0), 0x31)
+        .expect("set prio on SGI int");
+    gic.set_group(sgi_intid, Some(0), Group::Group1NS)
+        .expect("set group on SGI int");
 
     println!("gic.enable_interrupt()");
-    gic.enable_interrupt(sgi_intid, Some(0), true);
+    gic.enable_interrupt(sgi_intid, Some(0), true)
+        .expect("enabling SGI Int");
 
     println!("Enabling interrupts...");
     dump_cpsr();
@@ -57,7 +64,7 @@ pub fn s32z2_main() {
 
     // Send it
     println!("Send SGI");
-    GicV3::send_sgi(
+    GicCpuInterface::send_sgi(
         sgi_intid,
         SgiTarget::List {
             affinity3: 0,
@@ -66,7 +73,8 @@ pub fn s32z2_main() {
             target_list: 0b1,
         },
         SgiTargetGroup::CurrentGroup1,
-    );
+    )
+    .expect("send SGI");
 
     loop {
         cortex_ar::asm::nop();
@@ -82,9 +90,10 @@ fn dump_cpsr() {
 #[cortex_r_rt::irq]
 fn irq_handler() {
     println!("> IRQ");
-    while let Some(int_id) = GicV3::get_and_acknowledge_interrupt(InterruptGroup::Group1) {
+    while let Some(int_id) = GicCpuInterface::get_and_acknowledge_interrupt(InterruptGroup::Group1)
+    {
         println!("- IRQ handle {:?}", int_id);
-        GicV3::end_interrupt(int_id, InterruptGroup::Group1);
+        GicCpuInterface::end_interrupt(int_id, InterruptGroup::Group1);
     }
     println!("< IRQ");
 }

@@ -12,7 +12,7 @@ version = "0.1.0"
 [dependencies]
 arbitrary-int = "2"
 arm-dcc = "0.1"
-arm-gic = "0.6"
+arm-gic = "0.7.1"
 bitbybit = "1.4"
 cortex-ar = { version = "0.3", features=["critical-section-single-core"] }
 cortex-r-rt = "0.2"
