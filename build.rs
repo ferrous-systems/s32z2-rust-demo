@@ -22,5 +22,5 @@ fn write(file: &str, contents: &[u8]) {
         .write_all(contents)
         .unwrap();
     println!("cargo:rustc-link-search={}", out.display());
-    println!("cargo:rerun-if-changed={}", file);
+    println!("cargo:rerun-if-changed={file}");
 }
