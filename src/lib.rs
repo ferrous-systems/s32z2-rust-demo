@@ -2,43 +2,83 @@
 
 #![no_std]
 
-// Need this to bring in the start-up function
+use core::ptr::NonNull;
 
-use cortex_r_rt as _;
+use aarch32_cpu::generic_timer::El1VirtualTimer;
+use aarch32_rt as _;
+use arm_dcc::dprintln as println;
+use arm_gic::{
+    gicv3::{GicCpuInterface, GicV3},
+    UniqueMmioPointer,
+};
 use panic_dcc as _;
 
 mod clocks;
 mod mpu;
 
+/// Offset from PERIPHBASE for GIC Distributor
+pub const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
+
+/// Offset from PERIPHBASE for the first GIC Redistributor
+pub const GICR_BASE_OFFSET: usize = 0x0010_0000usize;
+
+pub struct Peripherals {
+    pub gic: GicV3<'static>,
+    pub virtual_timer: El1VirtualTimer,
+}
+
 /// The entry-point to the Rust application.
-#[cortex_r_rt::entry]
+#[aarch32_rt::entry]
 fn kmain() -> ! {
     unsafe extern "Rust" {
-        safe fn s32z2_main();
+        safe fn s32z2_main(peripherals: Peripherals);
     }
     setup_core();
-    s32z2_main();
+
+    // Get the GIC address by reading CBAR
+    let periphbase = aarch32_cpu::register::ImpCbar::read().periphbase();
+    println!("Found PERIPHBASE {:010p}", periphbase);
+    let gicd_base = periphbase.wrapping_byte_add(GICD_BASE_OFFSET);
+    let gicr_base = periphbase.wrapping_byte_add(GICR_BASE_OFFSET);
+
+    // Initialise the GIC.
+    println!(
+        "Creating GIC driver @ {:010p} / {:010p}",
+        gicd_base, gicr_base
+    );
+    let gicd = unsafe { UniqueMmioPointer::new(NonNull::new(gicd_base.cast()).unwrap()) };
+    let gicr_base = NonNull::new(gicr_base.cast()).unwrap();
+    let mut gic: GicV3 = unsafe { GicV3::new(gicd, gicr_base, 1, false) };
+    println!("Calling git.setup(0)");
+    gic.setup(0);
+    GicCpuInterface::set_priority_mask(0x80);
+
+    let peripherals = Peripherals {
+        gic,
+        virtual_timer: unsafe { El1VirtualTimer::new() },
+    };
+    s32z2_main(peripherals);
     semihosting::process::exit(0);
 }
 
 /// Setup RTU0 Core 1
 fn setup_core() {
     // Enable the peripheral port in EL1
-    let mut reg = cortex_ar::register::ImpPeriphpregionr::read();
+    let mut reg = aarch32_cpu::register::ImpPeriphpregionr::read();
     reg.0 |= 1;
     unsafe {
-        cortex_ar::register::ImpPeriphpregionr::write(reg);
+        aarch32_cpu::register::ImpPeriphpregionr::write(reg);
     }
-    cortex_ar::asm::dsb();
-    cortex_ar::asm::isb();
+    aarch32_cpu::asm::dsb();
+    aarch32_cpu::asm::isb();
     // enable branch prediction, icache and dcache
-    cortex_ar::register::Sctlr::modify(|w| {
+    aarch32_cpu::register::Sctlr::modify(|w| {
         w.set_c(true);
         w.set_i(true);
         w.set_z(true);
     });
-    cortex_ar::asm::dsb();
-    cortex_ar::asm::isb();
+    aarch32_cpu::asm::dsb();
+    aarch32_cpu::asm::isb();
     // Need the MPU be able to talk to the clock peripheral
     mpu::enable();
     // Turn on the PLLs

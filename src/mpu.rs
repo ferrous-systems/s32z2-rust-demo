@@ -4,7 +4,7 @@
 //! any peripherals using the default MPU 'background' configuration that
 //! applies when the MPU is disabled.
 
-use cortex_ar::{
+use aarch32_cpu::{
     self as _,
     pmsav8::{
         Cacheable, El1AccessPerms, El1Config, El1Mpu, El1Region, El1Shareability, MemAttr,
