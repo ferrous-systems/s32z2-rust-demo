@@ -17,55 +17,66 @@ IF !SYStem.Up()
   ENDDO
 )
 
-; Init RTU0 SRAMCTL_C0
-Data.Set EAXI:0x760C0008 %Long 0x799FFFFF
-Data.Set EAXI:0x760C0004 %Long 0x79900000
-Data.Set EAXI:0x760C0000 %Long 0x101
+; Each RTU subsystem has ten SRAMCTL instances: C0..=C6 (for code) and D0..=D2 (for data)
+;
+; - D0 and D1 are 256 KiB (and run 2x the speed of D2)
+; - D2 is 512 KiB
+; - C0 through C6 are 1 MiB each
+;
+; Each bank has a System Address and an address from the relevant RTU
+;
+; These are given in an Excel file attached to the Reference Manual (but are not *in* the
+; Reference Manual so don't bother searching for them)
 
-; Init RTU0 SRAMCTL_C1
-Data.Set EAXI:0x760D0008 %Long 0x79AFFFFF
-Data.Set EAXI:0x760D0004 %Long 0x79A00000
-Data.Set EAXI:0x760D0000 %Long 0x101
+; Init RTU0 SRAMCTL_C0 (RTU0 address 0x32100000)
+Data.Set EAXI:0x760C0008 %Long 0x799FFFFF ; RAM Init End Address with System Address for SRAM_C0
+Data.Set EAXI:0x760C0004 %Long 0x79900000 ; RAM Init Start Address with System Address for SRAM_C0
+Data.Set EAXI:0x760C0000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_C2
-Data.Set EAXI:0x760E0008 %Long 0x79BFFFFF
-Data.Set EAXI:0x760E0004 %Long 0x79B00000
-Data.Set EAXI:0x760E0000 %Long 0x101
+; Init RTU0 SRAMCTL_C1 (RTU0 address 0x32200000)
+Data.Set EAXI:0x760D0008 %Long 0x79AFFFFF ; RAM Init End Address with System Address for SRAM_C1
+Data.Set EAXI:0x760D0004 %Long 0x79A00000 ; RAM Init Start Address with System Address for SRAM_C1
+Data.Set EAXI:0x760D0000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_C3
-Data.Set EAXI:0x760F0008 %Long 0x79CFFFFF
-Data.Set EAXI:0x760F0004 %Long 0x79C00000
-Data.Set EAXI:0x760F0000 %Long 0x101
+; Init RTU0 SRAMCTL_C2 (RTU0 address 0x32300000)
+Data.Set EAXI:0x760E0008 %Long 0x79BFFFFF ; RAM Init End Address with System Address for SRAM_C2
+Data.Set EAXI:0x760E0004 %Long 0x79B00000 ; RAM Init Start Address with System Address for SRAM_C2
+Data.Set EAXI:0x760E0000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_C4
-Data.Set EAXI:0x76240008 %Long 0x79DFFFFF
-Data.Set EAXI:0x76240004 %Long 0x79D00000
-Data.Set EAXI:0x76240000 %Long 0x101
+; Init RTU0 SRAMCTL_C3 (RTU0 address 0x32400000)
+Data.Set EAXI:0x760F0008 %Long 0x79CFFFFF ; RAM Init End Address with System Address for SRAM_C3
+Data.Set EAXI:0x760F0004 %Long 0x79C00000 ; RAM Init Start Address with System Address for SRAM_C3
+Data.Set EAXI:0x760F0000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_C5
-Data.Set EAXI:0x76250008 %Long 0x79EFFFFF
-Data.Set EAXI:0x76250004 %Long 0x79E00000
-Data.Set EAXI:0x76250000 %Long 0x101
+; Init RTU0 SRAMCTL_C4 (RTU0 address 0x32500000)
+Data.Set EAXI:0x76240008 %Long 0x79DFFFFF ; RAM Init End Address with System Address for SRAM_C4
+Data.Set EAXI:0x76240004 %Long 0x79D00000 ; RAM Init Start Address with System Address for SRAM_C4
+Data.Set EAXI:0x76240000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_C6
-Data.Set EAXI:0x76260008 %Long 0x79FFFFFF
-Data.Set EAXI:0x76260004 %Long 0x79F00000
-Data.Set EAXI:0x76260000 %Long 0x101
+; Init RTU0 SRAMCTL_C5 (RTU0 address 0x32600000)
+Data.Set EAXI:0x76250008 %Long 0x79EFFFFF ; RAM Init End Address with System Address for SRAM_C5
+Data.Set EAXI:0x76250004 %Long 0x79E00000 ; RAM Init Start Address with System Address for SRAM_C5
+Data.Set EAXI:0x76250000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_D0
-Data.Set EAXI:0x761D0008 %Long 0x317BFFFF
-Data.Set EAXI:0x761D0004 %Long 0x31780000
-Data.Set EAXI:0x761D0000 %Long 0x101
+; Init RTU0 SRAMCTL_C6 (RTU0 address 0x32700000)
+Data.Set EAXI:0x76260008 %Long 0x79FFFFFF ; RAM Init End Address with System Address for SRAM_C6
+Data.Set EAXI:0x76260004 %Long 0x79F00000 ; RAM Init Start Address with System Address for SRAM_C6
+Data.Set EAXI:0x76260000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_D1
-Data.Set EAXI:0x761E0008 %Long 0x317FFFFF
-Data.Set EAXI:0x761E0004 %Long 0x317C0000
-Data.Set EAXI:0x761E0000 %Long 0x101
+; Init RTU0 SRAMCTL_D0 (RTU0 address 0x31780000)
+Data.Set EAXI:0x761D0008 %Long 0x317BFFFF ; RAM Init End Address with System Address for SRAM_D0
+Data.Set EAXI:0x761D0004 %Long 0x31780000 ; RAM Init Start Address with System Address for SRAM_D0
+Data.Set EAXI:0x761D0000 %Long 0x101      ; INIT_SYSA | INIT
 
-; Init RTU0 SRAMCTL_D2
-Data.Set EAXI:0x761F0008 %Long 0x3187FFFF
-Data.Set EAXI:0x761F0004 %Long 0x31800000
-Data.Set EAXI:0x761F0000 %Long 0x101
+; Init RTU0 SRAMCTL_D1 (RTU0 address 0x317C0000)
+Data.Set EAXI:0x761E0008 %Long 0x317FFFFF ; RAM Init End Address with System Address for SRAM_D1
+Data.Set EAXI:0x761E0004 %Long 0x317C0000 ; RAM Init Start Address with System Address for SRAM_D1
+Data.Set EAXI:0x761E0000 %Long 0x101      ; INIT_SYSA | INIT
+
+; Init RTU0 SRAMCTL_D2 (RTU0 address 0x31800000)
+Data.Set EAXI:0x761F0008 %Long 0x3187FFFF ; RAM Init End Address with System Address for SRAM_D2
+Data.Set EAXI:0x761F0004 %Long 0x31800000 ; RAM Init Start Address with System Address for SRAM_D2
+Data.Set EAXI:0x761F0000 %Long 0x101      ; INIT_SYSA | INIT
 
 ; Wait for completion
 WAIT (Data.Long(EAXI:0x760C000C)&0x00000001)==0x00000001 5s
