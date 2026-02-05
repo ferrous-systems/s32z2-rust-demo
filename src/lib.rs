@@ -99,7 +99,16 @@ core::arch::global_asm!(
     .align 0
 
     .global _start
+    .type _start,%function
     _start:
+        // Read MPIDR into R0
+        mrc     p15, 0, r0, c0, c0, 5
+        ands    r0, r0, 0xFF
+        beq     core0_init
+    core1_spin:
+        wfe
+        b       core1_spin
+    core0_init:
         // ECC init for S32Z2, which uses a table of (start, len)
 
         // r4 is the address of the current entry in the table.
