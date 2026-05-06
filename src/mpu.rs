@@ -7,7 +7,7 @@
 use aarch32_cpu::{
     self as _,
     pmsav8::{
-        Cacheable, El1AccessPerms, El1Config, El1Mpu, El1Region, El1Shareability, MemAttr,
+        CachePolicy, El1AccessPerms, El1Config, El1Mpu, El1Region, El1Shareability, MemAttr,
         RwAllocPolicy,
     },
 };
@@ -71,13 +71,13 @@ static MPU_CONFIG: El1Config = El1Config {
     memory_attributes: &[
         // MPU_MAIR_INDEX_CODE
         MemAttr::NormalMemory {
-            outer: Cacheable::WriteThroughNonTransient(RwAllocPolicy::R),
-            inner: Cacheable::WriteThroughNonTransient(RwAllocPolicy::R),
+            outer: CachePolicy::WriteThroughNonTransient(RwAllocPolicy::R),
+            inner: CachePolicy::WriteThroughNonTransient(RwAllocPolicy::R),
         },
         // MPU_MAIR_INDEX_DATA
         MemAttr::NormalMemory {
-            outer: Cacheable::WriteBackNonTransient(RwAllocPolicy::R),
-            inner: Cacheable::WriteBackNonTransient(RwAllocPolicy::R),
+            outer: CachePolicy::WriteBackNonTransient(RwAllocPolicy::R),
+            inner: CachePolicy::WriteBackNonTransient(RwAllocPolicy::R),
         },
         // MPU_MAIR_INDEX_DEVICE
         MemAttr::DeviceMemory,

@@ -18,17 +18,19 @@ pub fn s32z2_main() {
     let y = x + 1;
     let z = (y as f64) * 1.5;
     println!("x = {}, y = {}, z = {:0.3}", x, y, z);
-    aarch32_cpu::svc!(0xABCDEF);
+    let semihosting_result = aarch32_cpu::svc!(0xABCDEF);
+    println!("semihosting result was 0x{:04x}", semihosting_result);
     println!("x = {}, y = {}, z = {:0.3}", x, y, z);
     panic!("I am an example panic");
 }
 
 /// This is our SVC exception handler
 #[aarch32_rt::exception(SupervisorCall)]
-fn svc_handler(arg: u32) {
-    println!("In SupervisorCall handler, with arg={:#06x}", arg);
+fn svc_handler(arg: u32, frame: &aarch32_rt::Frame) -> u32 {
+    println!("In SupervisorCall handler, with arg={:#06x}, frame={:08x?}", arg, frame);
     if arg == 0xABCDEF {
         // test nested SVC calls
         aarch32_cpu::svc!(0x456789);
     }
+    0x1234
 }

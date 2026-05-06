@@ -8,10 +8,6 @@ use s32z2_rust_demo as _;
 
 use arm_dcc::dprintln as println;
 
-extern "C" {
-    static _stack_top: u32;
-}
-
 /// The entry-point to the Rust application.
 ///
 /// It is called by the start-up code in `lib.rs`
@@ -24,7 +20,7 @@ pub fn s32z2_main() {
     // This only works in EL2 and start-up put us in EL1
     // println!("{:?}", aarch32_cpu::register::Hvbar::read());
 
-    println!("_stack_top: {:010p}", core::ptr::addr_of!(_stack_top));
+    println!("Sys Stack: {:08x?}", aarch32_rt::stacks::Stack::Sys.range(0));
 
     println!(
         "{:?} before setting C, I and Z",
