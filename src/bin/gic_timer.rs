@@ -21,7 +21,7 @@ const VIRTUAL_TIMER_PPI: IntId = IntId::ppi(11);
 const SGI_ID: IntId = IntId::sgi(3);
 
 /// Just a dummy number that Core 1 will increment in a loop
-pub static CORE2_COUNTER: AtomicU32 = AtomicU32::new(0);
+pub static CORE1_COUNTER: AtomicU32 = AtomicU32::new(0);
 
 /// The entry-point to the Rust application for Core 0.
 ///
@@ -77,7 +77,7 @@ pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
         println!(
             "Main loop wake up {}, core1 counter {}",
             count,
-            CORE2_COUNTER.load(core::sync::atomic::Ordering::Relaxed)
+            CORE1_COUNTER.load(core::sync::atomic::Ordering::Relaxed)
         );
         count = count.wrapping_add(1);
     }
@@ -149,6 +149,6 @@ fn handle_sgi_irq() {
 #[unsafe(no_mangle)]
 pub extern "C" fn s32z2_main2() {
     loop {
-        CORE2_COUNTER.fetch_add(1, Relaxed);
+        CORE1_COUNTER.fetch_add(1, Relaxed);
     }
 }
