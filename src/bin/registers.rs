@@ -20,7 +20,10 @@ pub fn s32z2_main() {
     // This only works in EL2 and start-up put us in EL1
     // println!("{:?}", aarch32_cpu::register::Hvbar::read());
 
-    println!("Sys Stack: {:08x?}", aarch32_rt::stacks::Stack::Sys.range(0));
+    println!(
+        "Sys Stack: {:08x?}",
+        aarch32_rt::stacks::Stack::Sys.range(0)
+    );
 
     println!(
         "{:?} before setting C, I and Z",

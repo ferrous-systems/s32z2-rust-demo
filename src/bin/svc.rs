@@ -27,7 +27,10 @@ pub fn s32z2_main() {
 /// This is our SVC exception handler
 #[aarch32_rt::exception(SupervisorCall)]
 fn svc_handler(arg: u32, frame: &aarch32_rt::Frame) -> u32 {
-    println!("In SupervisorCall handler, with arg={:#06x}, frame={:08x?}", arg, frame);
+    println!(
+        "In SupervisorCall handler, with arg={:#06x}, frame={:08x?}",
+        arg, frame
+    );
     if arg == 0xABCDEF {
         // test nested SVC calls
         aarch32_cpu::svc!(0x456789);
