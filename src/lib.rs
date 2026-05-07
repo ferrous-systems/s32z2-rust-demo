@@ -2,9 +2,11 @@
 
 #![no_std]
 
-use core::ptr::NonNull;
+use core::{ptr::NonNull, sync::atomic::AtomicBool};
 
 use aarch32_cpu::generic_timer::El1VirtualTimer;
+#[cfg(target_arch = "arm")]
+use aarch32_cpu::register::{cpsr::ProcessorMode, Cpsr, Hactlr};
 use aarch32_rt as _;
 use arm_dcc::dprintln as println;
 use arm_gic::{
@@ -22,12 +24,18 @@ pub const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
 /// Offset from PERIPHBASE for the first GIC Redistributor
 pub const GICR_BASE_OFFSET: usize = 0x0010_0000usize;
 
+/// Controls when Core 1 can start running.
+///
+/// Initialised to false, set to true once Core 0 is ready for Core 1 to start.
+static CORE1_RELEASED: AtomicBool = AtomicBool::new(false);
+
+/// The peripherals we give Core 0 on start-up
 pub struct Peripherals {
     pub gic: GicV3<'static>,
     pub virtual_timer: El1VirtualTimer,
 }
 
-/// The entry-point to the Rust application.
+/// The entry-point to the Rust application on Core 0
 #[aarch32_rt::entry]
 fn kmain() -> ! {
     unsafe extern "Rust" {
@@ -61,7 +69,27 @@ fn kmain() -> ! {
     semihosting::process::exit(0);
 }
 
-/// Setup RTU0 Core 1
+/// The entry-point to the Rust application on Core 1
+#[unsafe(no_mangle)]
+pub extern "C" fn kmain2() {
+    unsafe extern "Rust" {
+        safe fn s32z2_main2();
+    }
+    s32z2_main2();
+    loop {
+        aarch32_cpu::asm::wfe();
+    }
+}
+
+/// If no main function is supplied for Core 1 in the application, we just sleep
+#[unsafe(no_mangle)]
+pub fn s32z2_main2_default() {
+    loop {
+        aarch32_cpu::asm::wfe();
+    }
+}
+
+/// Setup RTU0 Core 0
 fn setup_core() {
     // Enable the peripheral port in EL1
     let mut reg = aarch32_cpu::register::ImpPeriphpregionr::read();
@@ -83,15 +111,20 @@ fn setup_core() {
     mpu::enable();
     // Turn on the PLLs
     clocks::configure_pll();
+
+    // Wake up second core
+    CORE1_RELEASED.store(true, core::sync::atomic::Ordering::Relaxed);
+    aarch32_cpu::asm::sev();
 }
 
 // Custom start-up code for S32Z2
 //
-// Replaces the equivalent routine in cortex-r-rt, as we need to do extra things:
+// Supplements the equivalent routine in aarch32-rt, as we need to do extra things:
 //
-// * Erases the memory, so that we don't get ECC errors
-// * Initialises the TCMs
-// * Configures the Frequency register for the Generic Timer to 8 MHz
+// * Erase the memory, so that we don't get ECC errors
+// * Initialise the TCMs
+// * Configure the Frequency register for the Generic Timer to 8 MHz
+// * Set-up Core 1 with its own stacks, and set it running kmain2 at EL1
 #[cfg(target_arch = "arm")]
 core::arch::global_asm!(
     r#"
@@ -105,9 +138,63 @@ core::arch::global_asm!(
         mrc     p15, 0, r0, c0, c0, 5
         ands    r0, r0, 0xFF
         beq     core0_init
+    core1_init:
+        ldr     r0, ={released_bool}
+        mov     r1, #0
     core1_spin:
         wfe
-        b       core1_spin
+        // spin until boolean is set.
+        ldr     r2, [r0]  
+        cmp     r1, r2
+        beq     core1_spin
+    core1_released:
+        // First we must exit EL2...
+        // Set the HVBAR (for EL2) to _vector_table
+        ldr     r0, =_vector_table
+        mcr     p15, 4, r0, c12, c0, 0
+        // Configure HACTLR to let us enter EL1
+        mrc     p15, 4, r0, c1, c0, 1
+        mov     r1, {hactlr_bits}
+        orr     r0, r0, r1
+        mcr     p15, 4, r0, c1, c0, 1
+        // Program the SPSR - enter system mode (0x1F) in Arm mode with IRQ, FIQ masked
+        mov		r0, {sys_mode}
+        msr		spsr_hyp, r0
+        adr		r0, start_core1_el1
+        msr		elr_hyp, r0
+        dsb
+        isb
+        eret
+    start_core1_el1:
+        // Allow VFP coprocessor access
+        mrc     p15, 0, r0, c1, c0, 2
+        orr     r0, r0, #0xF00000
+        mcr     p15, 0, r0, c1, c0, 2
+        // Enable VFP
+        mov     r0, #0x40000000
+        vmsr    fpexc, r0
+        // Set the VBAR (for EL1) to _vector_table.
+        ldr     r0, =_vector_table
+        mcr     p15, 0, r0, c12, c0, 0
+        // set up our stacks - also switches to SYS mode
+        movs    r0, #1
+        bl      _stack_setup_preallocated
+        // Zero all registers before calling kmain2
+        mov     r0, 0
+        mov     r1, 0
+        mov     r2, 0
+        mov     r3, 0
+        mov     r4, 0
+        mov     r5, 0
+        mov     r6, 0
+        mov     r7, 0
+        mov     r8, 0
+        mov     r9, 0
+        mov     r10, 0
+        mov     r11, 0
+        mov     r12, 0
+        // call our kmain2 for core 1
+        bl      kmain2
     core0_init:
         // ECC init for S32Z2, which uses a table of (start, len)
 
@@ -204,5 +291,26 @@ core::arch::global_asm!(
         cmp     r1, #0                /* Is the end of DMEM? */
         bne     InitTcmLoop           /* Restart loop if not */
         bx      lr
-    "#
+    "#,
+    released_bool = sym CORE1_RELEASED,
+    hactlr_bits = const {
+        Hactlr::new_with_raw_value(0)
+            .with_cpuactlr(true)
+            .with_cdbgdci(true)
+            .with_flashifregionr(true)
+            .with_periphpregionr(true)
+            .with_qosr(true)
+            .with_bustimeoutr(true)
+            .with_intmonr(true)
+            .with_err(true)
+            .with_testr1(true)
+            .raw_value()
+    },
+    sys_mode = const {
+        Cpsr::new_with_raw_value(0)
+            .with_mode(ProcessorMode::Sys)
+            .with_i(true)
+            .with_f(true)
+            .raw_value()
+    },
 );

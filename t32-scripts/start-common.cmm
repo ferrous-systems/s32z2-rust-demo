@@ -35,6 +35,8 @@ WinPOS 168.71 27.083 99. 10. 26. 1. W002
 WinTABS 13. 0. 0. 0. 0. 0. 0. 0. 34.
 Break.List
 
+CORE.LIST
+
 WinPAGE.select P000
 
 ; Start with main

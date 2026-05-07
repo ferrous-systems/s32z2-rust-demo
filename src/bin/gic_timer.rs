@@ -3,6 +3,8 @@
 #![no_std]
 #![no_main]
 
+use core::sync::atomic::{AtomicU32, Ordering::Relaxed};
+
 use aarch32_cpu::generic_timer::{El1VirtualTimer, GenericTimer};
 use arm_dcc::dprintln as println;
 use arm_gic::{
@@ -18,7 +20,10 @@ const VIRTUAL_TIMER_PPI: IntId = IntId::ppi(11);
 /// Our software interrupt ID
 const SGI_ID: IntId = IntId::sgi(3);
 
-/// The entry-point to the Rust application.
+/// Just a dummy number that Core 1 will increment in a loop
+pub static CORE2_COUNTER: AtomicU32 = AtomicU32::new(0);
+
+/// The entry-point to the Rust application for Core 0.
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
@@ -69,7 +74,11 @@ pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
     let mut count: u32 = 0;
     loop {
         aarch32_cpu::asm::wfi();
-        println!("Main loop wake up {}", count);
+        println!(
+            "Main loop wake up {}, core1 counter {}",
+            count,
+            CORE2_COUNTER.load(core::sync::atomic::Ordering::Relaxed)
+        );
         count = count.wrapping_add(1);
     }
 }
@@ -132,4 +141,14 @@ fn handle_timer_irq() {
 /// Run when the SGI is fired
 fn handle_sgi_irq() {
     println!("- handle_sgi_irq()");
+}
+
+/// The entry-point to the Rust application for Core 1.
+///
+/// It is called by the start-up code in `lib.rs`
+#[unsafe(no_mangle)]
+pub extern "C" fn s32z2_main2() {
+    loop {
+        CORE2_COUNTER.fetch_add(1, Relaxed);
+    }
 }
