@@ -40,7 +40,7 @@ static MPU_CONFIG: El1Config = El1Config {
             mair: MPU_MAIR_INDEX_CODE,
             enable: true,
         },
-        // Data in R52_0_0_CODE_RAM
+        // Data in R52_0_0_DATA_RAM
         El1Region {
             range: 0x3178_0000 as *mut u8..=0x317B_FFFF as *mut u8,
             shareability: El1Shareability::InnerShareable,
