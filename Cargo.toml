@@ -22,3 +22,6 @@ semihosting = { version = "0.1.20", features = ["stdio"] }
 
 [build-dependencies]
 arm-targets = "0.4"
+
+[profile.dev]
+opt-level = "s"
