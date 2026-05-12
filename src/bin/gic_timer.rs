@@ -27,7 +27,7 @@ pub static CORE1_COUNTER: AtomicU32 = AtomicU32::new(0);
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
-pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
+pub fn s32z2_main(mut peripherals: Peripherals) {
     println!("Configure SGI...");
     // this is higher priority than the timer
     peripherals

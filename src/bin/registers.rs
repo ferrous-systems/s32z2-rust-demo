@@ -3,16 +3,15 @@
 #![no_std]
 #![no_main]
 
-// pull in our start-up code
-use s32z2_rust_demo as _;
-
 use arm_dcc::dprintln as println;
+
+use s32z2_rust_demo::Peripherals;
 
 /// The entry-point to the Rust application.
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
-pub fn s32z2_main() {
+pub fn s32z2_main(_peripherals: Peripherals) {
     println!("{:?}", aarch32_cpu::register::Midr::read());
     println!("{:?}", aarch32_cpu::register::Cpsr::read());
     println!("{:?}", aarch32_cpu::register::ImpCbar::read());

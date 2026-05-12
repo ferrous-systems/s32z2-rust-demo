@@ -6,14 +6,13 @@
 use aarch32_cpu::generic_timer::{El1PhysicalTimer, El1VirtualTimer, GenericTimer};
 use arm_dcc::dprintln as println;
 
-// pull in our start-up code
-use s32z2_rust_demo as _;
+use s32z2_rust_demo::Peripherals;
 
 /// The entry-point to the Rust application.
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
-pub fn s32z2_main() {
+pub fn s32z2_main(_peripherals: Peripherals) {
     let cntfrq = aarch32_cpu::register::Cntfrq::read().0;
     println!("cntfrq = {:.03} MHz", cntfrq as f32 / 1_000_000.0);
 
