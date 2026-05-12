@@ -52,7 +52,7 @@ and run.
 
 ## Minimum Supported Rust Version (MSRV)
 
-This crate is guaranteed to compile on Ferrocene 25.05 and up. It *might*
+This crate is guaranteed to compile on Ferrocene 26.02 and up. It *might*
 compile with older versions but that may change in any new patch release.
 
 It should also work on any upstream Rust new enough to include
