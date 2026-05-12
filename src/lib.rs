@@ -139,6 +139,7 @@ core::arch::global_asm!(
         ands    r0, r0, 0xFF
         beq     core0_init
     core1_init:
+        // wait for our shared variable to not be zero
         ldr     r0, ={released_bool}
         mov     r1, #0
     core1_spin:
@@ -148,7 +149,7 @@ core::arch::global_asm!(
         cmp     r1, r2
         beq     core1_spin
     core1_released:
-        // First we must exit EL2...
+        // Now we must exit EL2...
         // Set the HVBAR (for EL2) to _vector_table
         ldr     r0, =_vector_table
         mcr     p15, 4, r0, c12, c0, 0
@@ -164,8 +165,10 @@ core::arch::global_asm!(
         msr		elr_hyp, r0
         dsb
         isb
+        // leave EL2, 'return' to EL1
         eret
     start_core1_el1:
+        // this is where we continue once in EL1, after the eret
         // Allow VFP coprocessor access
         mrc     p15, 0, r0, c1, c0, 2
         orr     r0, r0, #0xF00000
