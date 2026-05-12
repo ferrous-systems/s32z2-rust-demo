@@ -5,11 +5,12 @@ on:
 name: Build
 
 jobs:
+  # Build with Ferrocene
   build-ferrocene:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install criticalup
         run: |
           curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ferrocene/criticalup/releases/download/v1.1.0/criticalup-installer.sh | sh
@@ -22,26 +23,28 @@ jobs:
         run: |
           criticalup run cargo build
           criticalup run cargo build --release
-  build-beta:
+
+  # Build with upstream Rust's stable channel
+  build-stable:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Rust
         run: |
-          rustup toolchain install beta
-          rustup target add armv8r-none-eabihf --toolchain=beta
+          rustup toolchain install stable
+          rustup target add armv8r-none-eabihf --toolchain=stable
       - name: Build
         run: |
-          cargo +beta build
-          cargo +beta build --release
+          cargo +stable build
+          cargo +stable build --release
 
   # Format the workspace
   fmt:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install rust
         run: |
           rustup install stable
@@ -53,6 +56,6 @@ jobs:
   # Gather all the above xxx-all jobs together for the purposes of getting an overall pass-fail
   all:
     runs-on: ubuntu-24.04
-    needs: [build-ferrocene, build-beta, fmt]
+    needs: [build-ferrocene, build-stable, fmt]
     steps:
       - run: /bin/true

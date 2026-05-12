@@ -18,7 +18,7 @@
 ; Reviewed by FIZ, 2024-10-29
 
 
-WinCLEAR
+; WinCLEAR
 
 ; --------------------------------------------------------------------------------
 ; initialize and start the debugger
@@ -55,6 +55,11 @@ DO ~~~~/s32z27_init_rtu0_sram.cmm
 ; --------------------------------------------------------------------------------
 ; load demo program (uses internal RAM only)
 Data.LOAD.Elf "~~~~/../target/armv8r-none-eabihf/debug/gic_timer"
+
+; Switch Core 1 from T32 mode (CPSR.T = 1) to A32 mode (CPST.T = 0)
+CORE.SELECT 1
+Register.Set CPSR 0x1DA
+CORE.SELECT 0
 
 ; Break on the UDF handler
 Break.Set 0x32100004
