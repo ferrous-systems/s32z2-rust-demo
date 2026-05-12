@@ -12,10 +12,7 @@ use arm_gic::{
     IntId,
 };
 
-/// The PPI for the virutal timer, according to the Cortex-R52 Reference Manual
-///
-/// This corresponds to Interrupt ID 27.
-const VIRTUAL_TIMER_PPI: IntId = IntId::ppi(11);
+use s32z2_rust_demo::{Peripherals, VIRTUAL_TIMER_PPI};
 
 /// Our software interrupt ID
 const SGI_ID: IntId = IntId::sgi(3);

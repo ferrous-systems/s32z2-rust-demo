@@ -11,18 +11,27 @@ use aarch32_rt as _;
 use arm_dcc::dprintln as println;
 use arm_gic::{
     gicv3::{GicCpuInterface, GicV3},
-    UniqueMmioPointer,
+    IntId, UniqueMmioPointer,
 };
 use panic_dcc as _;
 
 mod clocks;
+mod embassy_time_impl;
 mod mpu;
+
+pub use embassy_time_impl::timer_irq;
 
 /// Offset from PERIPHBASE for GIC Distributor
 pub const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
 
 /// Offset from PERIPHBASE for the first GIC Redistributor
 pub const GICR_BASE_OFFSET: usize = 0x0010_0000usize;
+
+/// The PPI for the virtual timer, according to the Cortex-R52 Technical Reference Manual,
+/// Table 10-3: PPI assignments.
+///
+/// This corresponds to Interrupt ID 27.
+pub const VIRTUAL_TIMER_PPI: IntId = IntId::ppi(11);
 
 /// Controls when Core 1 can start running.
 ///
@@ -87,6 +96,11 @@ pub fn s32z2_main2_default() {
     loop {
         aarch32_cpu::asm::wfe();
     }
+}
+
+/// Get the Multi-Processor ID lowest byte (either 0 or 1 on this platform)
+pub fn cpuid() -> u8 {
+    aarch32_cpu::register::Mpidr::read().0 as u8
 }
 
 /// Setup RTU0 Core 0
