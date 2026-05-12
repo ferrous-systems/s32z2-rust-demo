@@ -29,11 +29,17 @@ You also be able to load the firmware into RAM using NXP S32 Design Studio IDE, 
 
 ## Compilation
 
-To compile the examples, run:
+To compile the examples with Ferrocene run:
 
 ```bash
 criticalup install
-critical link create
+criticalup run cargo build
+```
+
+To compile the examples with Rust run:
+
+```bash
+rustup target add armv8r-none-eabihf
 cargo build
 ```
 
@@ -49,12 +55,12 @@ and run.
 This crate is guaranteed to compile on Ferrocene 25.05 and up. It *might*
 compile with older versions but that may change in any new patch release.
 
-It uses the `armv8r-none-eabihf` target which is available in Ferrocene through
-criticalup. To use upstream Rust, you need the nightly toolchain.
+It should also work on any upstream Rust new enough to include
+`armv8r-none-eabihf` support in `rustup`.
 
 ## Licence
 
-Copyright (c) Ferrous Systems, 2025
+Copyright (c) Ferrous Systems, 2025-2026
 
 Licensed under either [MIT](./LICENSE-MIT) or [Apache-2.0](./LICENSE-APACHE) at
 your option.
