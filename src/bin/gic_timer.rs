@@ -8,8 +8,8 @@ use core::sync::atomic::{AtomicU32, Ordering::Relaxed};
 use aarch32_cpu::generic_timer::{El1VirtualTimer, GenericTimer};
 use arm_dcc::dprintln as println;
 use arm_gic::{
-    gicv3::{GicCpuInterface, Group, InterruptGroup, SgiTarget, SgiTargetGroup},
-    IntId,
+    gicv3::{GicCpuInterface, Group, SgiTarget, SgiTargetGroup},
+    IntId, InterruptGroup,
 };
 
 /// The PPI for the virutal timer, according to the Cortex-R52 Reference Manual

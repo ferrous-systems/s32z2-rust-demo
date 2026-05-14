@@ -14,7 +14,7 @@ aarch32-cpu = { version = "0.3", features=["critical-section-single-core"] }
 aarch32-rt = "0.3"
 arbitrary-int = "2"
 arm-dcc = "0.1"
-arm-gic = "0.7.1"
+arm-gic = "0.8"
 bitbybit = "1.4"
 derive-mmio = "0.6"
 fugit = { version = "0.3.7", features = ["defmt"] }

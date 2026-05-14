@@ -58,25 +58,13 @@ checksum = "67039ca654718fb8c6acff38661f610c63c9b53e14509c78210be3a1f9e2defe"
 
 [[package]]
 name = "arm-gic"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c044ecf8760dd8ee5aa92c49cf7534942d289fb1f0247af92b5fbab8ab18a912"
-dependencies = [
- "bitflags 2.11.1",
- "safe-mmio 0.2.7",
- "thiserror",
- "zerocopy",
-]
-
-[[package]]
-name = "arm-gic"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84372c6068152f635a04870779f0fa0d1b0273dd09dbe1c6747688693d061f06"
 dependencies = [
  "arm-sysregs",
  "bitflags 2.11.1",
- "safe-mmio 0.3.0",
+ "safe-mmio",
  "thiserror",
  "zerocopy",
 ]
@@ -372,7 +360,7 @@ version = "2.2.0"
 source = "git+https://github.com/thejpster/rtic.git?branch=adding-armv8r-aarch32-support#79417de2eeff54f75fe7273b9b4a26a62a13b78e"
 dependencies = [
  "aarch32-cpu",
- "arm-gic 0.8.1",
+ "arm-gic",
  "critical-section",
  "defmt 1.1.0",
  "portable-atomic",
@@ -434,7 +422,7 @@ dependencies = [
  "aarch32-rt",
  "arbitrary-int 2.1.1",
  "arm-dcc",
- "arm-gic 0.7.2",
+ "arm-gic",
  "arm-targets",
  "bitbybit 1.4.0",
  "derive-mmio",
@@ -443,15 +431,6 @@ dependencies = [
  "rtic",
  "rtic-time",
  "semihosting",
-]
-
-[[package]]
-name = "safe-mmio"
-version = "0.2.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0a69f884a1511aa811aa94e04559414a66b18ca63f50f84ca31e304f38bad0d"
-dependencies = [
- "zerocopy",
 ]
 
 [[package]]

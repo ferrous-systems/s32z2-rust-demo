@@ -5,8 +5,8 @@
 
 use arm_dcc::dprintln as println;
 use arm_gic::{
-    gicv3::{GicCpuInterface, Group, InterruptGroup, SgiTarget, SgiTargetGroup},
-    IntId,
+    gicv3::{GicCpuInterface, Group, SgiTarget, SgiTargetGroup},
+    IntId, InterruptGroup,
 };
 
 /// The entry-point to the Rust application.
