@@ -3,24 +3,22 @@
 #![no_std]
 #![no_main]
 
-use aarch32_cpu::generic_timer::{El1PhysicalTimer, El1VirtualTimer, GenericTimer};
+use aarch32_cpu::generic_timer::GenericTimer;
 use arm_dcc::dprintln as println;
 
-// pull in our start-up code
-use s32z2_rust_demo as _;
+/// The entry-point to the Rust application
+#[aarch32_rt::entry]
+fn main() -> ! {
+    s32z2_rust_demo::setup_core();
 
-/// The entry-point to the Rust application.
-///
-/// It is called by the start-up code in `lib.rs`
-#[no_mangle]
-pub fn s32z2_main() {
+    let peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
     let cntfrq = aarch32_cpu::register::Cntfrq::read().0;
     println!("cntfrq = {:.03} MHz", cntfrq as f32 / 1_000_000.0);
 
     let delay_ticks = cntfrq * 2;
 
-    let mut pgt = unsafe { El1PhysicalTimer::new() };
-    let mut vgt = unsafe { El1VirtualTimer::new() };
+    let mut pgt = peripherals.physical_timer;
+    let mut vgt = peripherals.virtual_timer;
 
     loop {
         let pgt_ref: &mut dyn GenericTimer = &mut pgt;

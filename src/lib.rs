@@ -4,7 +4,7 @@
 
 use core::{ptr::NonNull, sync::atomic::AtomicBool};
 
-use aarch32_cpu::generic_timer::El1VirtualTimer;
+use aarch32_cpu::generic_timer::{El1PhysicalTimer, El1VirtualTimer};
 #[cfg(target_arch = "arm")]
 use aarch32_cpu::register::{cpsr::ProcessorMode, Cpsr, Hactlr};
 use aarch32_rt as _;
@@ -17,6 +17,7 @@ use panic_dcc as _;
 
 mod clocks;
 mod mpu;
+pub use clocks::*;
 
 /// Offset from PERIPHBASE for GIC Distributor
 pub const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
@@ -32,65 +33,55 @@ static CORE1_RELEASED: AtomicBool = AtomicBool::new(false);
 /// The peripherals we give Core 0 on start-up
 pub struct Peripherals {
     pub gic: GicV3<'static>,
+    pub mpu: aarch32_cpu::pmsav8::El1Mpu,
     pub virtual_timer: El1VirtualTimer,
+    pub physical_timer: El1PhysicalTimer,
 }
 
-/// The entry-point to the Rust application on Core 0
-#[aarch32_rt::entry]
-fn kmain() -> ! {
-    unsafe extern "Rust" {
-        safe fn s32z2_main(peripherals: Peripherals);
-    }
-    setup_core();
+impl Peripherals {
+    /// # Safety
+    ///
+    /// Only call this function once
+    pub unsafe fn steal() -> Peripherals {
+        // Get the GIC address by reading CBAR
+        let periphbase = aarch32_cpu::register::ImpCbar::read().periphbase();
+        println!("Found PERIPHBASE {:010p}", periphbase);
+        let gicd_base = periphbase.wrapping_byte_add(GICD_BASE_OFFSET);
+        let gicr_base = periphbase.wrapping_byte_add(GICR_BASE_OFFSET);
 
-    // Get the GIC address by reading CBAR
-    let periphbase = aarch32_cpu::register::ImpCbar::read().periphbase();
-    println!("Found PERIPHBASE {:010p}", periphbase);
-    let gicd_base = periphbase.wrapping_byte_add(GICD_BASE_OFFSET);
-    let gicr_base = periphbase.wrapping_byte_add(GICR_BASE_OFFSET);
+        // Initialise the GIC.
+        println!(
+            "Creating GIC driver @ {:010p} / {:010p}",
+            gicd_base, gicr_base
+        );
+        let gicd = unsafe { UniqueMmioPointer::new(NonNull::new(gicd_base.cast()).unwrap()) };
+        let gicr_base = NonNull::new(gicr_base.cast()).unwrap();
+        let mut gic: GicV3 = unsafe { GicV3::new(gicd, gicr_base, 2, false) };
+        println!("Calling git.setup(0)");
+        gic.setup(0);
+        GicCpuInterface::set_priority_mask(0x80);
 
-    // Initialise the GIC.
-    println!(
-        "Creating GIC driver @ {:010p} / {:010p}",
-        gicd_base, gicr_base
-    );
-    let gicd = unsafe { UniqueMmioPointer::new(NonNull::new(gicd_base.cast()).unwrap()) };
-    let gicr_base = NonNull::new(gicr_base.cast()).unwrap();
-    let mut gic: GicV3 = unsafe { GicV3::new(gicd, gicr_base, 1, false) };
-    println!("Calling git.setup(0)");
-    gic.setup(0);
-    GicCpuInterface::set_priority_mask(0x80);
-
-    let peripherals = Peripherals {
-        gic,
-        virtual_timer: unsafe { El1VirtualTimer::new() },
-    };
-    s32z2_main(peripherals);
-    semihosting::process::exit(0);
-}
-
-/// The entry-point to the Rust application on Core 1
-#[unsafe(no_mangle)]
-pub extern "C" fn kmain2() {
-    unsafe extern "Rust" {
-        safe fn s32z2_main2();
-    }
-    s32z2_main2();
-    loop {
-        aarch32_cpu::asm::wfe();
+        Peripherals {
+            gic,
+            mpu: unsafe { aarch32_cpu::pmsav8::El1Mpu::new() },
+            virtual_timer: unsafe { El1VirtualTimer::new() },
+            physical_timer: unsafe { El1PhysicalTimer::new() },
+        }
     }
 }
 
 /// If no main function is supplied for Core 1 in the application, we just sleep
 #[unsafe(no_mangle)]
-pub fn s32z2_main2_default() {
+pub fn kmain2_default() {
     loop {
         aarch32_cpu::asm::wfe();
     }
 }
 
-/// Setup RTU0 Core 0
-fn setup_core() {
+/// Setup our processor core with the required settingds
+///
+/// Turns on caches, enables the MPU, etc
+pub fn setup_core() {
     // Enable the peripheral port in EL1
     let mut reg = aarch32_cpu::register::ImpPeriphpregionr::read();
     reg.0 |= 1;
@@ -107,12 +98,14 @@ fn setup_core() {
     });
     aarch32_cpu::asm::dsb();
     aarch32_cpu::asm::isb();
-    // Need the MPU be able to talk to the clock peripheral
-    mpu::enable();
-    // Turn on the PLLs
-    clocks::configure_pll();
 
-    // Wake up second core
+    let mut mpu = unsafe { aarch32_cpu::pmsav8::El1Mpu::new() };
+    mpu.configure(&mpu::MPU_CONFIG).expect("MPU Config");
+    mpu.enable();
+}
+
+/// Wake up second core
+pub fn wake_core1() {
     CORE1_RELEASED.store(true, core::sync::atomic::Ordering::Relaxed);
     aarch32_cpu::asm::sev();
 }

@@ -24,10 +24,12 @@ const SGI_ID: IntId = IntId::sgi(3);
 pub static CORE1_COUNTER: AtomicU32 = AtomicU32::new(0);
 
 /// The entry-point to the Rust application for Core 0.
-///
-/// It is called by the start-up code in `lib.rs`
-#[no_mangle]
-pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
+#[aarch32_rt::entry]
+fn main() -> ! {
+    s32z2_rust_demo::setup_core();
+
+    let mut peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
+
     println!("Configure SGI...");
     // this is higher priority than the timer
     peripherals
@@ -66,6 +68,9 @@ pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
     unsafe {
         aarch32_cpu::interrupt::enable();
     }
+
+    println!("Waking core 1...");
+    s32z2_rust_demo::wake_core1();
 
     peripherals
         .virtual_timer
@@ -147,7 +152,8 @@ fn handle_sgi_irq() {
 ///
 /// It is called by the start-up code in `lib.rs`
 #[unsafe(no_mangle)]
-pub extern "C" fn s32z2_main2() {
+pub extern "C" fn kmain2() {
+    s32z2_rust_demo::setup_core();
     loop {
         CORE1_COUNTER.fetch_add(1, Relaxed);
     }

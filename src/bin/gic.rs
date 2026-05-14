@@ -10,10 +10,12 @@ use arm_gic::{
 };
 
 /// The entry-point to the Rust application.
-///
-/// It is called by the start-up code in `lib.rs`
-#[no_mangle]
-pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
+#[aarch32_rt::entry]
+fn main() -> ! {
+    s32z2_rust_demo::setup_core();
+
+    let mut peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
+
     // Configure a Software Generated Interrupt for Core 0
     println!("Configure SGI...");
     let sgi_intid = IntId::sgi(3);

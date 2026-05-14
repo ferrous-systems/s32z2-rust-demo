@@ -31,7 +31,7 @@ REGION_ALIAS("DATA", R52_0_0_DATA_RAM);
 REGION_ALIAS("STACKS", R52_0_0_DATA_RAM);
 
 PROVIDE(_num_cores = 2);
-PROVIDE(s32z2_main2 = s32z2_main2_default);
+PROVIDE(kmain2 = kmain2_default);
 
 __TCMA_Start  = ORIGIN(R52_0_0_TCMA);
 __TCMA_Length = LENGTH(R52_0_0_TCMA);

@@ -7,13 +7,9 @@
 use aarch32_cpu::{
     self as _,
     pmsav8::{
-        CachePolicy, El1AccessPerms, El1Config, El1Mpu, El1Region, El1Shareability, MemAttr,
-        RwAllocPolicy,
+        CachePolicy, El1AccessPerms, El1Config, El1Region, El1Shareability, MemAttr, RwAllocPolicy,
     },
 };
-
-/// Enable extra debug output over DCC
-static VERBOSE_DEBUGGING: bool = false;
 
 /// Index of MAIR Attr used for code regions
 const MPU_MAIR_INDEX_CODE: u8 = 0;
@@ -25,7 +21,7 @@ const MPU_MAIR_INDEX_DATA: u8 = 1;
 const MPU_MAIR_INDEX_DEVICE: u8 = 2;
 
 /// Basic MPU config for the S32Z2
-static MPU_CONFIG: El1Config = El1Config {
+pub static MPU_CONFIG: El1Config = El1Config {
     background_config: false,
     regions: &[
         // Code in R52_0_0_CODE_RAM
@@ -83,34 +79,3 @@ static MPU_CONFIG: El1Config = El1Config {
         MemAttr::DeviceMemory,
     ],
 };
-
-/// Set up the MPU
-///
-/// This is *mandatory* on S32Z2 because the peripherals are in
-/// 'Normal' memory according to the default MPU memory map, which
-/// absolutely does not work for talking to peripherals.
-pub fn enable() {
-    let mut mpu = unsafe { El1Mpu::new() };
-    if VERBOSE_DEBUGGING {
-        arm_dcc::dprintln!("MPU Config before:");
-        for idx in 0..mpu.num_regions() {
-            if let Some(region) = mpu.get_region(idx) {
-                if region.enable {
-                    arm_dcc::dprintln!("{:02}: {:?}", idx, region);
-                }
-            }
-        }
-    }
-
-    mpu.configure(&MPU_CONFIG).expect("MPU Config");
-
-    arm_dcc::dprintln!("MPU Config after:");
-    for idx in 0..mpu.num_regions() {
-        if let Some(region) = mpu.get_region(idx) {
-            if region.enable {
-                arm_dcc::dprintln!("{:02}: {:?}", idx, region);
-            }
-        }
-    }
-    mpu.enable();
-}

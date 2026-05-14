@@ -3,17 +3,17 @@
 #![no_std]
 #![no_main]
 
-// pull in our start-up code
 use aarch32_cpu as _;
-use s32z2_rust_demo as _;
 
 use arm_dcc::dprintln as println;
 
 /// The entry-point to the Rust application.
-///
-/// It is called by the start-up code in `lib.rs`
-#[no_mangle]
-pub fn s32z2_main() {
+#[aarch32_rt::entry]
+fn main() -> ! {
+    s32z2_rust_demo::setup_core();
+
+    let _peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
+
     let x = 1;
     let y = x + 1;
     let z = (y as f64) * 1.5;
