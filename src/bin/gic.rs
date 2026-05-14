@@ -3,11 +3,11 @@
 #![no_std]
 #![no_main]
 
-use arm_dcc::dprintln as println;
 use arm_gic::{
     gicv3::{GicCpuInterface, Group, SgiTarget, SgiTargetGroup},
     IntId, InterruptGroup,
 };
+use defmt::println;
 
 /// The entry-point to the Rust application.
 #[aarch32_rt::entry]
@@ -71,7 +71,7 @@ fn irq_handler() {
     println!("> IRQ");
     while let Some(int_id) = GicCpuInterface::get_and_acknowledge_interrupt(InterruptGroup::Group1)
     {
-        println!("- IRQ handle {:?}", int_id);
+        println!("- IRQ handle {}", int_id.raw_value());
         GicCpuInterface::end_interrupt(int_id, InterruptGroup::Group1);
     }
     println!("< IRQ");

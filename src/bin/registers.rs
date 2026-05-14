@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-use arm_dcc::dprintln as println;
+use defmt::println;
 
 /// The entry-point to the Rust application.
 #[aarch32_rt::entry]
@@ -21,10 +21,7 @@ fn main() -> ! {
 
     s32z2_rust_demo::configure_pll();
 
-    println!(
-        "Sys Stack: {:08x?}",
-        aarch32_rt::stacks::Stack::Sys.range(0)
-    );
+    println!("Sys Stack: {:x}", aarch32_rt::stacks::Stack::Sys.range(0));
 
     println!(
         "{:?} before setting C, I and Z",

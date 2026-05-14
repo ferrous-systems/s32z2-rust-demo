@@ -4,7 +4,7 @@
 #![no_main]
 
 use aarch32_cpu::generic_timer::GenericTimer;
-use arm_dcc::dprintln as println;
+use defmt::println;
 
 /// The entry-point to the Rust application
 #[aarch32_rt::entry]
@@ -13,7 +13,7 @@ fn main() -> ! {
 
     let peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
     let cntfrq = aarch32_cpu::register::Cntfrq::read().0;
-    println!("cntfrq = {:.03} MHz", cntfrq as f32 / 1_000_000.0);
+    println!("cntfrq = {=f32} MHz", cntfrq as f32 / 1_000_000.0);
 
     let delay_ticks = cntfrq * 2;
 

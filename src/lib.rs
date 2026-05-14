@@ -8,14 +8,15 @@ use aarch32_cpu::generic_timer::{El1PhysicalTimer, El1VirtualTimer};
 #[cfg(target_arch = "arm")]
 use aarch32_cpu::register::{cpsr::ProcessorMode, Cpsr, Hactlr};
 use aarch32_rt as _;
-use arm_dcc::dprintln as println;
 use arm_gic::{
     gicv3::{GicCpuInterface, GicV3},
     UniqueMmioPointer,
 };
+use defmt::println;
 use panic_dcc as _;
 
 mod clocks;
+mod defmt_dcc;
 mod interrupts;
 mod mpu;
 mod rtic_time_impl;
@@ -50,15 +51,12 @@ impl Peripherals {
     pub unsafe fn steal() -> Peripherals {
         // Get the GIC address by reading CBAR
         let periphbase = aarch32_cpu::register::ImpCbar::read().periphbase();
-        println!("Found PERIPHBASE {:010p}", periphbase);
+        println!("Found PERIPHBASE {:x}", periphbase);
         let gicd_base = periphbase.wrapping_byte_add(GICD_BASE_OFFSET);
         let gicr_base = periphbase.wrapping_byte_add(GICR_BASE_OFFSET);
 
         // Initialise the GIC.
-        println!(
-            "Creating GIC driver @ {:010p} / {:010p}",
-            gicd_base, gicr_base
-        );
+        println!("Creating GIC driver @ {:x} / {:x}", gicd_base, gicr_base);
         let gicd = unsafe { UniqueMmioPointer::new(NonNull::new(gicd_base.cast()).unwrap()) };
         let gicr_base = NonNull::new(gicr_base.cast()).unwrap();
         let mut gic: GicV3 = unsafe { GicV3::new(gicd, gicr_base, 2, false) };

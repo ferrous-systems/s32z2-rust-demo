@@ -50,6 +50,15 @@ To load and debug the examples, execute the
 in TRACE32 for Arm. You can modify the script to select which binary to load
 and run.
 
+The scripts configure DCC logging to go via a named-pipe, and application generates defmt encoded logs, so you should run:
+
+```console
+$ mkfifo ./defmt
+$ cat ./defmt | defmt-print -e ./target/armv8r-none-eabihf/debug/rtic_hello
+```
+
+Substitute the name of whichever binary you are debugging.
+
 ## Minimum Supported Rust Version (MSRV)
 
 This crate is guaranteed to compile on Ferrocene 26.02 and up. It *might*

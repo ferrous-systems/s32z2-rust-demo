@@ -6,7 +6,8 @@ sYmbol.SourcePATH.SetBaseDir "~~~~/.."
 
 TERM.METHOD dcc
 term.size #1 80 50 1000
-TERM.Mode string
+TERM.Mode hex
+term.scroll
 
 ; WINDOWS
 TOOLBAR   ON
@@ -21,8 +22,9 @@ WinPOS 220.57 -0.083333 48. 35. 0. 0. W003
 Register.view /SpotLight
 
 WinPOS 0.57143 2.3333 112. 59. 0. 0. W004
-term.gate
+term.view
 WinPAN 0. 21.
+term.pipewrite #1 ../defmt
 
 WinPOS 114.43 0.0 91. 26. 5. 0. W001
 Frame.view /Locals

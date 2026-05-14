@@ -6,7 +6,6 @@
 use core::sync::atomic::{AtomicU32, Ordering::Relaxed};
 
 use aarch32_cpu::generic_timer::{El1VirtualTimer, GenericTimer};
-use arm_dcc::dprintln as println;
 use arm_gic::{
     gicv3::{GicCpuInterface, Group, SgiTarget, SgiTargetGroup},
     IntId, InterruptGroup,
@@ -30,7 +29,7 @@ fn main() -> ! {
 
     let mut peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
 
-    println!("Configure SGI...");
+    defmt::info!("Configure SGI...");
     // this is higher priority than the timer
     peripherals
         .gic
@@ -45,7 +44,7 @@ fn main() -> ! {
         .enable_interrupt(SGI_ID, Some(0), true)
         .expect("SGI enable_interrupt");
 
-    println!("Configure Timer Interrupt...");
+    defmt::info!("Configure Timer Interrupt...");
     // this is lower priority than the SGI, so they will nest
     peripherals
         .gic
@@ -64,12 +63,12 @@ fn main() -> ! {
     peripherals.virtual_timer.interrupt_mask(false);
     peripherals.virtual_timer.counter_compare_set(u64::MAX);
 
-    println!("Enabling interrupts...");
+    defmt::info!("Enabling interrupts...");
     unsafe {
         aarch32_cpu::interrupt::enable();
     }
 
-    println!("Waking core 1...");
+    defmt::info!("Waking core 1...");
     s32z2_rust_demo::wake_core1();
 
     peripherals
@@ -79,7 +78,7 @@ fn main() -> ! {
     let mut count: u32 = 0;
     loop {
         aarch32_cpu::asm::wfi();
-        println!(
+        defmt::info!(
             "Main loop wake up {}, core1 counter {}",
             count,
             CORE1_COUNTER.load(core::sync::atomic::Ordering::Relaxed)
@@ -91,10 +90,10 @@ fn main() -> ! {
 /// Called when the Arm core gets an IRQ
 #[aarch32_rt::irq]
 fn irq_handler() {
-    println!("> irq_handler()");
+    defmt::debug!("> irq_handler()");
     while let Some(int_id) = GicCpuInterface::get_and_acknowledge_interrupt(InterruptGroup::Group1)
     {
-        println!("- Handling {:?}", int_id);
+        defmt::debug!("- Handling {=u32}", int_id.raw_value());
         // Re-enable interrupts
         //
         // NB: Don't do this until after you've talked to the GIC
@@ -109,23 +108,23 @@ fn irq_handler() {
             handle_sgi_irq();
         }
         aarch32_cpu::interrupt::disable();
-        println!("- Handled {:?}", int_id);
+        defmt::debug!("- Handled {=u32}", int_id.raw_value());
         GicCpuInterface::end_interrupt(int_id, InterruptGroup::Group1);
     }
-    println!("< irq_handler()");
+    defmt::debug!("< irq_handler()");
 }
 
 /// Run when the timer IRQ fires
 fn handle_timer_irq() {
-    println!("> handle_timer_irq()");
+    defmt::debug!("> handle_timer_irq()");
 
-    println!("--- Resetting timer...");
+    defmt::debug!("--- Resetting timer...");
 
     // trigger a timer in 1 second
     let mut vgt = unsafe { El1VirtualTimer::new() };
     vgt.countdown_set(vgt.countdown().wrapping_add(vgt.frequency_hz()));
 
-    println!("--- Sending SGI...");
+    defmt::debug!("--- Sending SGI...");
     GicCpuInterface::send_sgi(
         SGI_ID,
         SgiTarget::List {
@@ -140,12 +139,12 @@ fn handle_timer_irq() {
     // make sure the SGI happens
     aarch32_cpu::asm::isb();
 
-    println!("< handle_timer_irq()");
+    defmt::debug!("< handle_timer_irq()");
 }
 
 /// Run when the SGI is fired
 fn handle_sgi_irq() {
-    println!("- handle_sgi_irq()");
+    defmt::debug!("- handle_sgi_irq()");
 }
 
 /// The entry-point to the Rust application for Core 1.

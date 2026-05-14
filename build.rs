@@ -11,6 +11,7 @@ fn main() {
     write("memory.x", include_bytes!("s32z2.x"));
     // Use the cortex-r-rt linker script
     println!("cargo:rustc-link-arg=-Tlink.x");
+    println!("cargo:rustc-link-arg=-Tdefmt.x");
 }
 
 fn write(file: &str, contents: &[u8]) {

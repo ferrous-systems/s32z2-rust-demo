@@ -3,7 +3,6 @@
 //! Programs the *DFS* (Digital Frequency Synthesizer).
 
 use arbitrary_int::{u15, u3, u6};
-use arm_dcc::dprintln as println;
 
 /// The DFS Peripheral
 #[derive(derive_mmio::Mmio)]
@@ -18,7 +17,7 @@ pub struct Dfs {
 }
 
 /// The DFS Port Status Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct DfsPortSr {
     /// Lock Status for Port 5
     #[bit(5, r)]
@@ -47,7 +46,7 @@ impl core::fmt::Debug for DfsPortSr {
 }
 
 /// The DFS Control Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct DfsCtl {
     /// If true, the DFS phase generator is in reset and you cannot enable any ports
     #[bit(1, rw)]
@@ -61,7 +60,7 @@ impl core::fmt::Debug for DfsCtl {
 }
 
 /// The DFS Port Reset Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct DfsPortReset {
     /// If true, Port 5 is disabled
     #[bit(5, rw)]
@@ -90,7 +89,7 @@ impl core::fmt::Debug for DfsPortReset {
 }
 
 /// Divider configuration for DFS output port
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct DfsDvPort {
     /// Integer part of division value
     #[bits(8..=15, rw)]
@@ -129,7 +128,7 @@ pub struct PllDig {
 }
 
 /// The PLL Status Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct PllDigSr {
     /// If true, Loss of Lock detected
     #[bit(3, rw)]
@@ -146,7 +145,7 @@ impl core::fmt::Debug for PllDigSr {
 }
 
 /// The PLL Control Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct PllDigCr {
     /// If 1, the PLL is currently in the power-down state
     #[bit(31, rw)]
@@ -160,7 +159,7 @@ impl core::fmt::Debug for PllDigCr {
 }
 
 /// The PLL Divider Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct PllDigDv {
     #[bits(12..=14, rw)]
     rdiv: u3,
@@ -175,7 +174,7 @@ impl core::fmt::Debug for PllDigDv {
 }
 
 /// The PLL Fractional Divider Register
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct PllDigFd {
     #[bit(30, rw)]
     sdmen: bool,
@@ -190,7 +189,7 @@ impl core::fmt::Debug for PllDigFd {
 }
 
 /// The PLL Clock Mux
-#[bitbybit::bitfield(u32)]
+#[bitbybit::bitfield(u32, defmt_bitfields)]
 pub struct PllDigClkMux {
     /// If true, select external Fast Crystal Oscillator (FXOSC).
     ///
@@ -225,19 +224,19 @@ pub fn configure_pll() {
 
 fn print_clock_setup(name: &str, dfs: &mut MmioDfs, pll: &mut MmioPllDig) {
     // The clocks seem to be set up for us
-    println!("Examining {} DFS and PLL...", name);
-    println!("  {:#?}", dfs.read_ctl());
-    println!("  {:#?}", dfs.read_portsr());
-    println!("  {:#?}", dfs.read_portreset());
+    defmt::debug!("Examining {} DFS and PLL...", name);
+    defmt::debug!("  {}", dfs.read_ctl());
+    defmt::debug!("  {}", dfs.read_portsr());
+    defmt::debug!("  {}", dfs.read_portreset());
     for i in 0.. {
         if let Ok(p) = dfs.read_dvports(i) {
-            println!("  - DvPort{}: {:#?}", i, p);
+            defmt::debug!("  - DvPort{}: {}", i, p);
         } else {
             break;
         }
     }
-    println!("  {:#?}", pll.read_pllcr());
-    println!("  {:#?}", pll.read_pllsr());
-    println!("  {:#?}", pll.read_plldv());
-    println!("  {:#?}", pll.read_pllfd());
+    defmt::debug!("  {}", pll.read_pllcr());
+    defmt::debug!("  {}", pll.read_pllsr());
+    defmt::debug!("  {}", pll.read_plldv());
+    defmt::debug!("  {}", pll.read_pllfd());
 }

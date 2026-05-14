@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-use arm_dcc::dprintln as println;
+use defmt::println;
 
 /// The entry-point to the Rust application.
 #[aarch32_rt::entry]
@@ -14,6 +14,6 @@ fn main() -> ! {
 
     let x = 1.0f64;
     let y = x * 2.0;
-    println!("Hello, this is semihosting! x = {:0.3}, y = {:0.3}", x, y);
+    println!("Hello, this is semihosting! x = {=f64}, y = {=f64}", x, y);
     panic!("I am an example panic");
 }

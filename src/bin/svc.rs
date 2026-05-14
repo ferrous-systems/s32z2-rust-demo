@@ -5,8 +5,6 @@
 
 use aarch32_cpu as _;
 
-use arm_dcc::dprintln as println;
-
 /// The entry-point to the Rust application.
 #[aarch32_rt::entry]
 fn main() -> ! {
@@ -17,19 +15,20 @@ fn main() -> ! {
     let x = 1;
     let y = x + 1;
     let z = (y as f64) * 1.5;
-    println!("x = {}, y = {}, z = {:0.3}", x, y, z);
+    defmt::info!("x = {=i32}, y = {=i32}, z = {=f64}", x, y, z);
     let semihosting_result = aarch32_cpu::svc!(0xABCDEF);
-    println!("semihosting result was 0x{:04x}", semihosting_result);
-    println!("x = {}, y = {}, z = {:0.3}", x, y, z);
+    defmt::info!("semihosting result was 0x{:04x}", semihosting_result);
+    defmt::info!("x = {=i32}, y = {=i32}, z = {=f64}", x, y, z);
     panic!("I am an example panic");
 }
 
 /// This is our SVC exception handler
 #[aarch32_rt::exception(SupervisorCall)]
 fn svc_handler(arg: u32, frame: &aarch32_rt::Frame) -> u32 {
-    println!(
-        "In SupervisorCall handler, with arg={:#06x}, frame={:08x?}",
-        arg, frame
+    defmt::info!(
+        "In SupervisorCall handler, with arg={:x}, frame={}",
+        arg,
+        defmt::Debug2Format(frame)
     );
     if arg == 0xABCDEF {
         // test nested SVC calls

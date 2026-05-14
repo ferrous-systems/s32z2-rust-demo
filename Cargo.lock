@@ -12,6 +12,7 @@ dependencies = [
  "arm-targets",
  "bitbybit 2.0.0",
  "critical-section",
+ "defmt 1.1.0",
  "num_enum",
  "thiserror",
 ]
@@ -49,6 +50,9 @@ name = "arbitrary-int"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "993a810118f8f37e9c4411c86f1c4c940a09a7ab34b7bf2d88d06f50c553fab7"
+dependencies = [
+ "defmt 1.1.0",
+]
 
 [[package]]
 name = "arm-dcc"
@@ -425,6 +429,8 @@ dependencies = [
  "arm-gic",
  "arm-targets",
  "bitbybit 1.4.0",
+ "critical-section",
+ "defmt 1.1.0",
  "derive-mmio",
  "fugit",
  "panic-dcc",
