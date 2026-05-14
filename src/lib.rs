@@ -16,8 +16,13 @@ use arm_gic::{
 use panic_dcc as _;
 
 mod clocks;
+mod interrupts;
 mod mpu;
+mod rtic_time_impl;
+
 pub use clocks::*;
+pub use interrupts::*;
+pub use rtic_time_impl::*;
 
 /// Offset from PERIPHBASE for GIC Distributor
 pub const GICD_BASE_OFFSET: usize = 0x0000_0000usize;
