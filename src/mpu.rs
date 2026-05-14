@@ -26,7 +26,7 @@ pub static MPU_CONFIG: El1Config = El1Config {
     regions: &[
         // Code in R52_0_0_CODE_RAM
         El1Region {
-            range: 0x3210_0000 as *mut u8..=0x321B_FFFF as *mut u8,
+            range: 0x3210_0000 as *const u8..=0x321B_FFFF as *const u8,
             shareability: El1Shareability::InnerShareable,
             // ordinarily you'd want this read-only, except the debugger
             // replaces instructions on-the-fly with soft breakpoints, so
@@ -38,7 +38,7 @@ pub static MPU_CONFIG: El1Config = El1Config {
         },
         // Data in R52_0_0_DATA_RAM
         El1Region {
-            range: 0x3178_0000 as *mut u8..=0x317B_FFFF as *mut u8,
+            range: 0x3178_0000 as *const u8..=0x317B_FFFF as *const u8,
             shareability: El1Shareability::InnerShareable,
             access: El1AccessPerms::ReadWrite,
             no_exec: true,
@@ -47,7 +47,7 @@ pub static MPU_CONFIG: El1Config = El1Config {
         },
         // RTU0 P0 Peripherals
         El1Region {
-            range: 0x4000_0000 as *mut u8..=0x407F_FFFF as *mut u8,
+            range: 0x4000_0000 as *const u8..=0x407F_FFFF as *const u8,
             shareability: El1Shareability::NonShareable,
             access: El1AccessPerms::ReadWriteNoEL0,
             no_exec: true,
@@ -56,7 +56,7 @@ pub static MPU_CONFIG: El1Config = El1Config {
         },
         // RTU0 GICv3
         El1Region {
-            range: 0x4780_0000 as *mut u8..=0x479F_FFFF as *mut u8,
+            range: 0x4780_0000 as *const u8..=0x479F_FFFF as *const u8,
             shareability: El1Shareability::NonShareable,
             access: El1AccessPerms::ReadWriteNoEL0,
             no_exec: true,
