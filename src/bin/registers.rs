@@ -3,16 +3,15 @@
 #![no_std]
 #![no_main]
 
-// pull in our start-up code
-use s32z2_rust_demo as _;
-
-use arm_dcc::dprintln as println;
+use defmt::println;
 
 /// The entry-point to the Rust application.
-///
-/// It is called by the start-up code in `lib.rs`
-#[no_mangle]
-pub fn s32z2_main() {
+#[aarch32_rt::entry]
+fn main() -> ! {
+    s32z2_rust_demo::setup_core();
+
+    let _peripherals = unsafe { s32z2_rust_demo::Peripherals::steal() };
+
     println!("{:?}", aarch32_cpu::register::Midr::read());
     println!("{:?}", aarch32_cpu::register::Cpsr::read());
     println!("{:?}", aarch32_cpu::register::ImpCbar::read());
@@ -20,10 +19,9 @@ pub fn s32z2_main() {
     // This only works in EL2 and start-up put us in EL1
     // println!("{:?}", aarch32_cpu::register::Hvbar::read());
 
-    println!(
-        "Sys Stack: {:08x?}",
-        aarch32_rt::stacks::Stack::Sys.range(0)
-    );
+    s32z2_rust_demo::configure_pll();
+
+    println!("Sys Stack: {:x}", aarch32_rt::stacks::Stack::Sys.range(0));
 
     println!(
         "{:?} before setting C, I and Z",
@@ -35,4 +33,8 @@ pub fn s32z2_main() {
         w.set_z(true);
     });
     println!("{:?} after", aarch32_cpu::register::Sctlr::read());
+
+    loop {
+        aarch32_cpu::asm::wfe();
+    }
 }
