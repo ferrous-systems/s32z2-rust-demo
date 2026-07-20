@@ -54,7 +54,7 @@ DO ~~~~/s32z27_init_rtu0_sram.cmm
 
 ; --------------------------------------------------------------------------------
 ; load demo program (uses internal RAM only)
-Data.LOAD.Elf "~~~~/../target/armv8r-none-eabihf/debug/gic_timer"
+Data.LOAD.Elf "~~~~/../target/armv8r-none-eabihf/debug/embassy_hello"
 
 ; Switch Core 1 from T32 mode (CPSR.T = 1) to A32 mode (CPST.T = 0)
 CORE.SELECT 1

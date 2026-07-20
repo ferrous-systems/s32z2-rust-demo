@@ -9,11 +9,15 @@ use arm_gic::{
     IntId,
 };
 
+use s32z2_rust_demo::Peripherals;
+
 /// The entry-point to the Rust application.
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
-pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
+pub fn s32z2_main(mut peripherals: Peripherals) {
+    println!("-- Running the 'gic' binary on the NXP S32Z2 --");
+
     // Configure a Software Generated Interrupt for Core 0
     println!("Configure SGI...");
     let sgi_intid = IntId::sgi(3);

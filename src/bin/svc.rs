@@ -3,9 +3,7 @@
 #![no_std]
 #![no_main]
 
-// pull in our start-up code
-use aarch32_cpu as _;
-use s32z2_rust_demo as _;
+use s32z2_rust_demo::Peripherals;
 
 use arm_dcc::dprintln as println;
 
@@ -13,7 +11,9 @@ use arm_dcc::dprintln as println;
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
-pub fn s32z2_main() {
+pub fn s32z2_main(_peripherals: Peripherals) {
+    println!("-- Running the 'svc' binary on the NXP S32Z2 --");
+
     let x = 1;
     let y = x + 1;
     let z = (y as f64) * 1.5;

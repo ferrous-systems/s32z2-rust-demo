@@ -12,10 +12,7 @@ use arm_gic::{
     IntId,
 };
 
-/// The PPI for the virutal timer, according to the Cortex-R52 Reference Manual
-///
-/// This corresponds to Interrupt ID 27.
-const VIRTUAL_TIMER_PPI: IntId = IntId::ppi(11);
+use s32z2_rust_demo::{Peripherals, VIRTUAL_TIMER_PPI};
 
 /// Our software interrupt ID
 const SGI_ID: IntId = IntId::sgi(3);
@@ -27,7 +24,9 @@ pub static CORE1_COUNTER: AtomicU32 = AtomicU32::new(0);
 ///
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
-pub fn s32z2_main(mut peripherals: s32z2_rust_demo::Peripherals) {
+pub fn s32z2_main(mut peripherals: Peripherals) {
+    println!("-- Running the 'gic_timer' binary on the NXP S32Z2 --");
+
     println!("Configure SGI...");
     // this is higher priority than the timer
     peripherals
