@@ -13,6 +13,8 @@ use s32z2_rust_demo::Peripherals;
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
 pub fn s32z2_main(_peripherals: Peripherals) {
+    println!("-- Running the 'generic_timer' binary on the NXP S32Z2 --");
+
     let cntfrq = aarch32_cpu::register::Cntfrq::read().0;
     println!("cntfrq = {:.03} MHz", cntfrq as f32 / 1_000_000.0);
 

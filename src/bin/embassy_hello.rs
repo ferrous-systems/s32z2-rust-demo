@@ -40,6 +40,8 @@ pub fn s32z2_main(mut peripherals: Peripherals) -> ! {
 /// It spawns [second_task], then prints once per second.
 #[embassy_executor::main()]
 async fn main(spawner: embassy_executor::Spawner) -> ! {
+    println!("-- Running the 'embassy_hello' binary on the NXP S32Z2 --");
+
     spawner.spawn(second_task().unwrap());
 
     let mut ticker = Ticker::every(Duration::from_secs(1));

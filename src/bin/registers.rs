@@ -12,6 +12,8 @@ use s32z2_rust_demo::Peripherals;
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
 pub fn s32z2_main(_peripherals: Peripherals) {
+    println!("-- Running the 'registers' binary on the NXP S32Z2 --");
+
     println!("{:?}", aarch32_cpu::register::Midr::read());
     println!("{:?}", aarch32_cpu::register::Cpsr::read());
     println!("{:?}", aarch32_cpu::register::ImpCbar::read());

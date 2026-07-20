@@ -25,6 +25,8 @@ pub static CORE1_COUNTER: AtomicU32 = AtomicU32::new(0);
 /// It is called by the start-up code in `lib.rs`
 #[no_mangle]
 pub fn s32z2_main(mut peripherals: Peripherals) {
+    println!("-- Running the 'gic_timer' binary on the NXP S32Z2 --");
+
     println!("Configure SGI...");
     // this is higher priority than the timer
     peripherals
