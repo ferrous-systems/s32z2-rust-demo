@@ -10,21 +10,21 @@ rust-version = "1.86"
 version = "0.1.0"
 
 [dependencies]
-aarch32-cpu = { version = "0.3", features=["critical-section-multi-core"] }
-aarch32-rt = "0.3"
+aarch32-cpu = { git = "https://github.com/thejpster/aarch32", branch = "add-smp-support", features=["critical-section-multi-core"] }
+aarch32-rt = { git = "https://github.com/thejpster/aarch32", branch = "add-smp-support" }
 arbitrary-int = "2"
-arm-dcc = "0.1"
+arm-dcc = "0.2"
 arm-gic = "0.7.1"
 bitbybit = "1.4"
 critical-section = "1.2.0"
-derive-mmio = "0.6"
+derive-mmio = "0.8"
 embassy-executor = { version = "0.10.0", features = ["platform-cortex-ar", "executor-thread"] }
 embassy-futures = "0.1.2"
 embassy-sync = "0.8.0"
 embassy-time = { version = "0.5.1", features = ["tick-hz-8_000_000"] }
 embassy-time-driver = "0.2.2"
 embassy-time-queue-utils = "0.3.2"
-panic-dcc = "0.1"
+panic-dcc = "0.2"
 semihosting = { version = "0.1.20", features = ["stdio"] }
 
 [build-dependencies]
